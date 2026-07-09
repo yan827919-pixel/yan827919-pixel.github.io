@@ -54,7 +54,7 @@ body{
   justify-content:center;
   overflow:hidden;
 }
-.game{width:100%;max-width:440px;height:100dvh;display:flex;flex-direction:column;padding:calc(10px+var(--safe-top)) 10px calc(6px+var(--safe-bottom));position:relative}
+.game{width:100%;min-height:100dvh;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 10px calc(6px + env(safe-area-inset-bottom,0px));position:relative;max-width:480px;margin:0 auto}
 
 /* ── Header ── */
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-shrink:0}
