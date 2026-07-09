@@ -589,7 +589,7 @@ function ea(){
   if(!act){
     act=new(window.AudioContext||window.webkitAudioContext)();
     masterGain=act.createGain();
-    masterGain.gain.value=sfxVol;
+    masterGain.gain.value=sfxVol*1.5;
     masterGain.connect(act.destination);
   }
   if(act.state==='suspended')act.resume()
@@ -613,7 +613,7 @@ function updateAudioVol(){
   bgm.volume=musicVol;
   document.getElementById('musicVolLabel').textContent=Math.round(musicVol*100)+'%';
   document.getElementById('sfxVolLabel').textContent=Math.round(sfxVol*100)+'%';
-  if(masterGain)masterGain.gain.value=sfxVol;
+  if(masterGain)masterGain.gain.value=sfxVol*1.5;
   try{localStorage.setItem('bc_audio',JSON.stringify({mus:musicVol,sfxx:sfxVol}))}catch(e){}
 }
 document.addEventListener('click',startBGM,{once:true});
