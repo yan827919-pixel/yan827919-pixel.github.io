@@ -34,7 +34,7 @@
     --card:#fffdf8; --border:#ddd9cd; --border-strong:#a89f8c;
     --text:#2c2c2a; --text-secondary:#5f5e5a; --text-muted:#948d7c;
     --danger:#c23b3b; --wood:#a9764f; --wood-dark:#8a5d3b;
-    --star:#e6b800; --bomb:#e04040;
+    --star:#e6b800; --bomb:#e04040; --achieve-got:#1D9E75;
     --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
@@ -95,7 +95,6 @@
   .sockWrap:active{cursor:grabbing; transform:scale(1.1);}
   .clip{position:absolute; top:0; left:50%; transform:translateX(-50%); width:7px; height:5px; background:var(--wood-dark); border-radius:2px; z-index:2;}
 
-  /* ★ 特殊袜子标记 */
   .badgeStar{position:absolute; top:-6px; right:-6px; font-size:11px; z-index:3; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3)); animation:badgePop 0.4s ease;}
   .badgeBomb{position:absolute; top:-6px; right:-6px; font-size:11px; z-index:3; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3)); animation:badgePop 0.4s ease;}
   @keyframes badgePop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
@@ -106,13 +105,13 @@
     animation:scoreFloat .7s ease forwards;
   }
   @keyframes scoreFloat{0%{opacity:0; transform:translate(-50%,4px)}20%{opacity:1}100%{opacity:0; transform:translate(-50%,-18px)}}
-
   .starPop{color:var(--star) !important; font-size:14px !important;}
   .bombPop{color:var(--bomb) !important; font-size:14px !important;}
 
   @keyframes pop{0%{transform:scale(1) translateX(-50%);opacity:1}60%{transform:scale(1.3) translateX(-50%);opacity:1}100%{transform:scale(0.15) translateX(-50%);opacity:0}}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
   @keyframes fadeIn{from{opacity:0; transform:translateY(-3px)}to{opacity:1; transform:translateY(0)}}
+  @keyframes achievePop{0%{transform:scale(0.5)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pop{animation:pop .35s ease forwards;}
   .miss{animation:shake .3s ease;}
   .unlocked{animation:fadeIn .5s ease;}
@@ -140,7 +139,7 @@
   #calmBtn:disabled{opacity:0.4; cursor:not-allowed;}
   #calmBtn.ready{box-shadow:0 0 0 2px rgba(55,138,221,0.4);}
 
-  /* === 排行榜 === */
+  /* 排行榜 */
   .lbBtnWrap{display:flex; gap:6px; justify-content:center; margin-bottom:6px;}
   #lbBtn{font-size:10px; padding:3px 12px; border-radius:12px; background:#f2eee2;}
   #lbBtn:active{transform:scale(0.97);}
@@ -168,15 +167,42 @@
   .lbEntry.me{border:1.5px solid #378ADD;}
   #lbClose{display:block; margin:8px auto 0; font-size:11px; padding:4px 20px;}
 
+  /* 成就系统 */
+  .achieveSection{
+    margin-top:10px; border-top:1px dashed var(--border); padding-top:8px;
+  }
+  .achieveTitle{
+    font-size:10px; color:var(--text-muted); margin-bottom:5px; display:flex; align-items:center; gap:4px;
+  }
+  .achieveTitle .count{color:var(--achieve-got); font-weight:700;}
+  .achieveGrid{
+    display:flex; gap:6px; flex-wrap:wrap; min-height:40px;
+  }
+  .achieveBadge{
+    width:58px; height:54px; border-radius:8px; border:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-size:9px; color:var(--text-muted); gap:2px; transition:all .2s; cursor:default;
+    background:#fcfaf6;
+  }
+  .achieveBadge .icon{font-size:16px; line-height:1;}
+  .achieveBadge .aname{font-size:7.5px; line-height:1.1; text-align:center; max-width:50px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .achieveBadge.got{
+    border-color:var(--achieve-got); background:#e8f5ee;
+    animation:achievePop .4s ease;
+  }
+  .achieveBadge.got .icon{filter:none;}
+  .achieveBadge.got .aname{color:var(--achieve-got); font-weight:600;}
+  .achieveBadge.locked{opacity:0.5; filter:grayscale(0.7);}
+  .achieveBadge.newlyGot{box-shadow:0 0 0 2px var(--star);}
+
   .rainbowRing{position:absolute; inset:-3px; border-radius:8px; border:2px dashed #b8860b; animation:spin 3s linear infinite; pointer-events:none;}
   @keyframes spin{to{transform:rotate(360deg);}}
   .calming{box-shadow:inset 0 0 0 3px rgba(55,138,221,0.35) !important;}
   .rainbowSock{background:linear-gradient(135deg,#D85A30,#BA7517,#1D9E75,#378ADD,#7F77DD,#D4537E)!important; background-size:300% 300%; animation:rainbowShift 2.4s linear infinite, popIdle 1.6s ease-in-out infinite;}
   @keyframes rainbowShift{0%{background-position:0% 50%}100%{background-position:100% 50%}}
   @keyframes popIdle{0%,100%{filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15)) drop-shadow(0 0 4px rgba(255,255,255,0.6))}50%{filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15)) drop-shadow(0 0 8px rgba(255,255,255,0.9))}}
-  .hint{text-align:center; font-size:9.5px; color:var(--text-muted); margin-top:10px; line-height:1.5;}
+  .hint{text-align:center; font-size:9.5px; color:var(--text-muted); margin-top:8px; line-height:1.5;}
 
-  /* 进度条：下一等级 */
   .xpRow{display:flex; align-items:center; gap:6px; margin:2px 0 4px;}
   .xpRow .xpLabel{font-size:9px; color:var(--text-muted); white-space:nowrap;}
   .xpBarOuter{flex:1; height:5px; background:#e8e4da; border-radius:4px; overflow:hidden;}
@@ -191,6 +217,9 @@
     .topbar{font-size:10px;}
     .lineBox{padding-top:14px;}
     #lbBox{max-width:100%; margin:0 8px;}
+    .achieveBadge{width:50px; height:46px;}
+    .achieveBadge .icon{font-size:14px;}
+    .achieveBadge .aname{font-size:7px;}
   }
   @media(max-height:640px){
     #game{padding:8px 8px 12px;}
@@ -200,6 +229,9 @@
     h1{font-size:13px; margin-bottom:1px;}
     .topbar{margin-bottom:3px;}
     .subtitle{display:none;}
+    .achieveBadge{width:46px; height:42px;}
+    .achieveBadge .icon{font-size:13px;}
+    .achieveBadge .aname{display:none;}
   }
 </style>
 </head>
@@ -263,7 +295,14 @@
       <button id="lbBtn">🏆 排行榜</button>
     </div>
   </div>
-  <div class="hint">绳子随风摇摆，等级越高越猛。⭐星袜配对方双倍得分，💣炸弹袜消除自身+相邻。每配对4次攒1点"稳一稳"能量（🧊）。<br>在抖音中打开自动记录排行榜。</div>
+
+  <!-- 成就系统（填底部空间） -->
+  <div class="achieveSection">
+    <div class="achieveTitle">🏅 成就 <span class="count" id="achieveCount">0/8</span></div>
+    <div class="achieveGrid" id="achieveGrid"></div>
+  </div>
+
+  <div class="hint">绳子随风摇摆，等级越高越猛。⭐星袜配对方双倍得分，💣炸弹袜消除自身+相邻。每配对4次攒1点"稳一稳"能量（🧊）。在抖音中打开自动记录排行榜。收集成就解锁更多乐趣！</div>
 </div>
 
 <!-- 排行榜弹窗 -->
@@ -282,15 +321,33 @@
     {n:'pink',h:'#D4537E'},{n:'purple',h:'#7F77DD'},{n:'amber',h:'#BA7517'}
   ];
   const SLOTS=7, TRAYMAX=4, LINE2_LEVEL=3;
-  const SPECIAL_CHANCE=0.15; // 15% 概率出现特殊袜
+  const SPECIAL_CHANCE=0.15;
   const SPECIAL_TYPES=['star','bomb'];
+
+  // 成就定义
+  const ACHIEVEMENTS=[
+    {id:'first', icon:'🧦', name:'初次配对', desc:'完成第1次配对', check:()=>matches>=1},
+    {id:'combo5', icon:'🔥', name:'连击达人', desc:'达到5连击', check:()=>combo>=5},
+    {id:'bomb3', icon:'💣', name:'拆弹专家', desc:'使用3次炸弹袜', check:()=>stats.bombUsed>=3},
+    {id:'star5', icon:'⭐', name:'星袜猎手', desc:'配对5次星袜', check:()=>stats.starMatched>=5},
+    {id:'calm5', icon:'🧊', name:'风平浪静', desc:'使用5次稳一稳', check:()=>stats.calmUsed>=5},
+    {id:'rainbow3', icon:'🌈', name:'色彩大师', desc:'配对3次彩虹袜', check:()=>stats.rainbowMatched>=3},
+    {id:'score1k', icon:'🏆', name:'高分王', desc:'单局达到1000分', check:()=>score>=1000},
+    {id:'line2pro', icon:'🪢', name:'双绳大师', desc:'解锁双绳后配20对', check:()=>line2Unlocked && stats.line2Matches>=20},
+  ];
 
   let lines=[new Array(SLOTS).fill(null), new Array(SLOTS).fill(null)];
   let queue=[]; let score=0, level=1, lives=3, matches=0, colorsUnlocked=4;
   let combo=0, comboTimer=null;
   let spawnTimer=null, running=true, line2Unlocked=false, soundOn=true;
   let calmCharges=0, calmUntil=0, comboBank=0;
-  let xpInLevel=0; // 当前等级内已配对次数
+  let xpInLevel=0;
+  // 跨局统计数据（存localStorage）
+  let globalStats={bombUsed:0,starMatched:0,calmUsed:0,rainbowMatched:0,line2Matches:0};
+  // 本局统计（用于成就检查）
+  let stats={bombUsed:0,starMatched:0,calmUsed:0,rainbowMatched:0,line2Matches:0};
+  let gotAchievements=[]; // id数组，持久化
+  let newlyGot=[]; // 本局新获得的
 
   const RAINBOW='conic-gradient(#D85A30,#1D9E75,#378ADD,#D4537E,#7F77DD,#BA7517,#D85A30)';
 
@@ -314,15 +371,33 @@
   const lbList=document.getElementById('lbList');
   const lbBtn=document.getElementById('lbBtn');
   const lbClose=document.getElementById('lbClose');
+  const achieveGrid=document.getElementById('achieveGrid');
+  const achieveCount=document.getElementById('achieveCount');
 
   const LB_KEY='clothesline_lb';
+  const ACH_KEY='clothesline_ach';
+  const STAT_KEY='clothesline_stat';
+  const ACH_KEYS={got:ACH_KEY,stat:STAT_KEY};
+
+  // ====== 持久化 ======
+  function loadPersistent(){
+    try{
+      const a=localStorage.getItem(ACH_KEYS.got);
+      if(a) gotAchievements=JSON.parse(a);
+      const s=localStorage.getItem(ACH_KEYS.stat);
+      if(s) globalStats=JSON.parse(s);
+    }catch(e){}
+  }
+  function savePersistent(){
+    try{
+      localStorage.setItem(ACH_KEYS.got,JSON.stringify(gotAchievements));
+      localStorage.setItem(ACH_KEYS.stat,JSON.stringify(globalStats));
+    }catch(e){}
+  }
 
   // ====== 排行榜 ======
   function loadLeaderboard(){
-    try{
-      const raw=localStorage.getItem(LB_KEY);
-      return raw?JSON.parse(raw):[];
-    }catch(e){return [];}
+    try{ return JSON.parse(localStorage.getItem(LB_KEY))||[]; }catch(e){return [];}
   }
   function saveLeaderboard(data){
     try{ localStorage.setItem(LB_KEY,JSON.stringify(data)); }catch(e){}
@@ -333,17 +408,16 @@
     lb.sort((a,b)=>b.score-a.score);
     if(lb.length>20) lb.length=20;
     saveLeaderboard(lb);
-
-    // 推送到抖音小程序
     if(typeof tt!=='undefined' && tt.postMessage){
       tt.postMessage({type:'score_update', score:sc, level:lv});
     }
-    return lb.indexOf(lb.find(e=>e.score===sc && e.level===lv && e.date===lb.find(x=>x.score===sc && x.level===lv).date));
+    const idx=lb.findIndex(e=>e.score===sc && e.level===lv && e.date===lb.find(x=>x.score===sc && x.level===lv).date);
+    return idx;
   }
   function renderLeaderboard(highlight){
     const lb=loadLeaderboard();
     if(!lb.length){ lbList.innerHTML='<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0;">暂无记录，快去玩一局吧！</p>'; return; }
-    lbList.innerHTML=lb.map((e,i)=>{
+    lbList.innerHTML=lb.slice(0,20).map((e,i)=>{
       const isMe=(highlight!==undefined && i===highlight);
       const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
       return '<div class="lbEntry'+(isMe?' me':'')+'">'
@@ -362,6 +436,39 @@
   lbClose.addEventListener('click',()=>lbPanel.classList.remove('show'));
   lbPanel.addEventListener('click',(e)=>{ if(e.target===lbPanel) lbPanel.classList.remove('show'); });
 
+  // ====== 成就系统 ======
+  function renderAchievements(){
+    achieveGrid.innerHTML=ACHIEVEMENTS.map(a=>{
+      const got=gotAchievements.includes(a.id);
+      const isNew=newlyGot.includes(a.id);
+      return '<div class="achieveBadge'+(got?' got':' locked')+(isNew?' newlyGot':'')+'" title="'+a.desc+'">'
+        +'<span class="icon">'+(got?a.icon:'🔒')+'</span>'
+        +'<span class="aname">'+(got?a.name:'???')+'</span>'
+        +'</div>';
+    }).join('');
+    achieveCount.textContent=gotAchievements.length+'/8';
+  }
+  function checkAchievements(){
+    ACHIEVEMENTS.forEach(a=>{
+      if(gotAchievements.includes(a.id)) return;
+      if(a.check()){
+        gotAchievements.push(a.id);
+        newlyGot.push(a.id);
+        // 全局加总跨局统计
+        globalStats.bombUsed=Math.max(globalStats.bombUsed,stats.bombUsed);
+        globalStats.starMatched=Math.max(globalStats.starMatched,stats.starMatched);
+        globalStats.calmUsed=Math.max(globalStats.calmUsed,stats.calmUsed);
+        globalStats.rainbowMatched=Math.max(globalStats.rainbowMatched,stats.rainbowMatched);
+        globalStats.line2Matches=Math.max(globalStats.line2Matches,stats.line2Matches);
+        savePersistent();
+        renderAchievements();
+        showBanner('🏅 解锁成就：'+a.icon+' '+a.name);
+        beep(880,0.3,'sine');
+        setTimeout(()=>beep(1100,0.2,'sine'),150);
+      }
+    });
+  }
+
   // ====== 核心逻辑 ======
   function updateCalmUI(){
     calmCount.textContent=calmCharges;
@@ -371,12 +478,14 @@
   calmBtn.addEventListener('click',()=>{
     if(calmCharges<=0 || !running) return;
     calmCharges--;
+    stats.calmUsed++;
     updateCalmUI();
     calmUntil=performance.now()+3000;
     showBanner('风平息了片刻');
     beep(520,0.2,'sine');
     wrap.classList.add('calming');
     setTimeout(()=>wrap.classList.remove('calming'),3000);
+    checkAchievements();
   });
 
   function updateXP(){
@@ -428,16 +537,13 @@
   }
 
   function randColor(){
-    // 普通彩虹袜 8%
     if(Math.random()<0.08) return {n:'rainbow',h:RAINBOW,rainbow:true};
     return colors[Math.floor(Math.random()*colorsUnlocked)];
   }
   function randSock(){
     const base=randColor();
-    // 特殊袜
     if(Math.random()<SPECIAL_CHANCE && base.n!=='rainbow'){
-      const st=SPECIAL_TYPES[Math.floor(Math.random()*SPECIAL_TYPES.length)];
-      base.special=st;
+      base.special=SPECIAL_TYPES[Math.floor(Math.random()*SPECIAL_TYPES.length)];
     }
     return base;
   }
@@ -465,7 +571,6 @@
         const sock=document.createElement('div');
         sock.className='sock'+(s.anim?(' '+s.anim):'');
         sock.style.cssText='position:absolute;top:5px;left:50%;transform:translateX(-50%);background:'+s.h+';filter:drop-shadow(0 2px 2px rgba(0,0,0,0.12));';
-        // 特殊标记
         if(s.special==='star'){
           const badge=document.createElement('span');
           badge.className='badgeStar'; badge.textContent='⭐';
@@ -530,35 +635,34 @@
       clearTimeout(comboTimer);
       comboTimer=setTimeout(()=>comboLabel.classList.remove('show'),1200);
     }
+    checkAchievements(); // combo5
   }
   function resetCombo(){
     combo=0;
     comboLabel.classList.remove('show');
   }
 
-  // 炸弹效果：清除自身+相邻
   function detonateBomb(li,idx){
     const arr=lines[li];
     const affected=[];
     for(let d=-1;d<=1;d++){
       const n=idx+d;
-      if(n>=0 && n<SLOTS && arr[n]){
-        affected.push(n);
-      }
+      if(n>=0 && n<SLOTS && arr[n]) affected.push(n);
     }
-    affected.forEach(n=>{
-      arr[n].anim='pop';
-    });
+    affected.forEach(n=>{ arr[n].anim='pop'; });
     renderLine(li);
     beep(300,0.15,'square');
     setTimeout(()=>{
       let bonus=0;
       affected.forEach(n=>{
         if(arr[n]){
+          if(arr[n].special==='star') stats.starMatched++;
+          if(arr[n].rainbow) stats.rainbowMatched++;
           arr[n]=null;
           bonus+=10*level;
         }
       });
+      stats.bombUsed++;
       score+=bonus;
       matches+=affected.length;
       comboBank+=affected.length;
@@ -571,6 +675,7 @@
       showBanner('💥 炸弹清除 '+affected.length+' 个！');
       const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');
       if(slotEl) popScore(slotEl,bonus,'bombPop');
+      checkAchievements();
     },320);
   }
 
@@ -579,7 +684,6 @@
     const s=arr[idx];
     if(!s) return;
 
-    // 炸弹：不配对，直接引爆
     if(s.special==='bomb'){
       detonateBomb(li,idx);
       return;
@@ -594,12 +698,11 @@
         const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');
         bumpCombo();
 
-        // 星袜双倍
         const starBonus=(s.special==='star'||arr[n].special==='star');
         const wildcardBonus=(s.rainbow||arr[n].rainbow)?20:0;
         const gained=(10*level+Math.max(0,(combo-1)*5)+wildcardBonus)*(starBonus?2:1);
         if(slotEl) popScore(slotEl,gained,starBonus?'starPop':'');
-        if(starBonus) showBanner('⭐ 星袜双倍！');
+        if(starBonus) { stats.starMatched++; showBanner('⭐ 星袜双倍！'); }
 
         setTimeout(()=>{
           arr[idx]=null; arr[n]=null;
@@ -607,10 +710,14 @@
           comboBank++;
           scoreEl.textContent=score;
           xpInLevel++;
+          if(s.rainbow||arr[n].rainbow) stats.rainbowMatched++;
+          // 双绳统计
+          if(li===1) stats.line2Matches++;
           checkLevelUp();
           updateXP();
           if(comboBank>=4){ comboBank=0; calmCharges=Math.min(calmCharges+1,3); updateCalmUI(); }
           renderLine(li);
+          checkAchievements();
         },320);
       }
     });
@@ -635,11 +742,10 @@
   function endGame(){
     running=false;
     clearInterval(spawnTimer);
+    checkAchievements(); // 最后检查一次（如score1k）
     overEl.style.display='block';
-    document.getElementById('finalScore').textContent='最终得分 '+score+' · 到达等级 '+level;
-    // 提交排行榜
+    document.getElementById('finalScore').textContent='最终得分 '+score+' · 到达等级 '+level+' · 成就 '+gotAchievements.length+'/8';
     const rank=submitScore(score,level);
-    // 显示排行榜（高亮自己的成绩）
     setTimeout(()=>{
       renderLeaderboard(rank);
       lbPanel.classList.add('show');
@@ -654,7 +760,6 @@
     ghost=document.createElement('div');
     ghost.className='sock';
     ghost.style.cssText='background:'+queue[dragQidx].h+';position:absolute;pointer-events:none;z-index:20;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.2));width:26px;height:32px;';
-    // 特殊标记随拖拽
     const q=queue[dragQidx];
     if(q.special==='star'){
       const badge=document.createElement('span');
@@ -682,7 +787,6 @@
     const rect=wrap.getBoundingClientRect();
     ghost.style.left=(e.clientX-rect.left-13)+'px';
     ghost.style.top=(e.clientY-rect.top-16)+'px';
-
     const el=document.elementFromPoint(e.clientX,e.clientY);
     const slotEl=el && el.closest ? el.closest('.slot') : null;
     if(slotEl!==hoverSlotEl){
@@ -757,10 +861,11 @@
     requestAnimationFrame(loop);
   }
 
-  document.getElementById('restartBtn').addEventListener('click',()=>{
+  function resetGame(){
     lines=[new Array(SLOTS).fill(null), new Array(SLOTS).fill(null)];
     queue=[]; score=0; level=1; lives=3; matches=0; colorsUnlocked=4;
-    xpInLevel=0; updateXP();
+    xpInLevel=0; stats={bombUsed:0,starMatched:0,calmUsed:0,rainbowMatched:0,line2Matches:0};
+    newlyGot=[];
     running=true; line2Unlocked=false;
     calmCharges=0; calmUntil=0; comboBank=0;
     resetCombo();
@@ -770,10 +875,16 @@
     lbPanel.classList.remove('show');
     scoreEl.textContent='0'; levelEl.textContent='1';
     renderHearts(); renderAllLines(); renderTray(); updateWind();
+    updateXP();
     for(let i=0;i<3;i++) spawnTick();
     resetSpawn();
-  });
+  }
 
+  document.getElementById('restartBtn').addEventListener('click',resetGame);
+
+  // 初始化
+  loadPersistent();
+  renderAchievements();
   updateCalmUI();
   updateXP();
   renderHearts(); renderAllLines(); updateWind();
