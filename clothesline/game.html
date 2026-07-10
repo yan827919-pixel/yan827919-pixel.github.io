@@ -28,13 +28,19 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   body{
-    min-height:100dvh;min-height:100vh;
-    padding:calc(10px+var(--safe-top))6px calc(20px+var(--safe-bottom));
-    background:linear-gradient(180deg,var(--sky-top)0%,var(--sky-bottom)65%,var(--ground)100%);
+    margin:0;padding:0;overflow:hidden;height:100dvh;width:100vw;
+    background:linear-gradient(180deg,var(--sky-top)0%,var(--sky-bottom)55%,var(--ground)100%);
     color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    display:flex;justify-content:center;overflow-x:hidden;
+    display:flex;justify-content:center;align-items:center;
   }
-  #game{width:100%;max-width:480px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 12px 10px;box-shadow:0 8px 24px rgba(60,50,30,0.08);position:relative;overflow:hidden;}
+  #game{
+    width:100%;max-width:480px;height:100dvh;height:100vh;
+    background:var(--card);padding:calc(6px+var(--safe-top))8px calc(4px+var(--safe-bottom));
+    position:relative;overflow-y:auto;overflow-x:hidden;
+    display:flex;flex-direction:column;
+  }
+  #game::-webkit-scrollbar{display:none;}
+  .gameFill{flex:1;display:flex;flex-direction:column;min-height:0;}
   h1{font-size:16px;font-weight:700;margin:0 0 2px;text-align:center;letter-spacing:0.5px;}
   .subtitle{text-align:center;font-size:10px;color:var(--text-muted);margin:0 0 8px;}
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:11px;flex-wrap:wrap;gap:3px;}
@@ -143,8 +149,8 @@
   .guideItem.gold{border:1px solid var(--gold);background:#fff8e6;}
 
   /* ===== 洗衣场景 ===== */
-  .washSection{border-top:1px dashed var(--border);padding-top:6px;}
-  .washScene{position:relative;width:100%;height:130px;border-radius:12px;overflow:hidden;cursor:pointer;background:linear-gradient(180deg,#d4e8f0 0%,#c9dba0 60%,#b8c890 100%);transition:filter .8s ease,opacity .8s ease;}
+  .washSection{border-top:1px dashed var(--border);padding-top:6px;flex:1;display:flex;flex-direction:column;min-height:80px;}
+  .washScene{position:relative;width:100%;flex:1;border-radius:10px;overflow:hidden;cursor:pointer;background:linear-gradient(180deg,#d4e8f0 0%,#c9dba0 60%,#b8c890 100%);transition:filter .8s ease,opacity .8s ease;min-height:60px;}
   .washScene.dark{filter:brightness(0.4)contrast(0.8);}
   .washScene.washing{animation:washFlash .6s ease;}
   @keyframes washFlash{0%,100%{filter:brightness(1)}30%{filter:brightness(1.15)}}
@@ -211,7 +217,7 @@
     #game{padding:8px;}.slot{height:44px;}
     .sock{width:17px;height:22px;}.sockWrap{width:34px;height:34px;}
     h1{font-size:13px;margin-bottom:1px;}.topbar{margin-bottom:3px;}.subtitle{display:none;}
-    .washScene{height:100px;}.kidChar{transform:translateX(-50%)scale(0.85);}
+    .washScene{min-height:50px;}.kidChar{transform:translateX(-50%)scale(0.75);}
   }
 </style>
 </head>
@@ -266,6 +272,7 @@
   </div>
   <div class="sepStrong"></div>
 
+  <div class="gameFill">
   <div class="trayLabel">🧺 晾衣篮（已洗好的袜子，拖绳配对消除）</div>
   <div id="tray"></div>
 
@@ -312,6 +319,7 @@
       <button class="mBtn" id="lbModalBtn" style="font-size:10px;padding:3px 10px;border-radius:12px;background:#f2eee2;">🏆 排行榜</button>
     </div>
   </div>
+  </div><!-- /gameFill -->
 
   <div id="over">
     <p class="title">游戏结束</p>
