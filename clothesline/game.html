@@ -265,7 +265,7 @@ let stats={bombUsed:0,starMatched:0,calmUsed:0,rainbowMatched:0,line2Matches:0,g
 let gotAchievements=[],newlyGot=[];
 
 function washNeeded(){return Math.min(2+Math.floor((level-1)/2),5);}
-function spawnRate(){return Math.max(4000,12000-level*1200);}
+function spawnRate(){return Math.max(600,2400-level*300);}
 
 const RAINBOW='conic-gradient(#D85A30,#1D9E75,#378ADD,#D4537E,#7F77DD,#BA7517,#D85A30)';
 const $=id=>document.getElementById(id);
@@ -319,7 +319,7 @@ function updateStats(){statWash.textContent=washCount;statMatch.textContent=matc
 // ===== 洗衣核心 =====
 function randColor(){if(Math.random()<0.08)return{n:'rainbow',h:RAINBOW,rainbow:true};return colors[Math.floor(Math.random()*colorsUnlocked)];}
 function randSock(){const base=randColor();if(base.n!=='rainbow'){for(const[t,c]of Object.entries(SPEC_WEIGHTS)){if(Math.random()<c){base.special=t;break;}}}return base;}
-function spawnDirty(){if(!running||dirtyQueue.length>=DIRTY_MAX)return;dirtyQueue.push(randSock());renderDirtyPile();updateSpawnCount();}
+function spawnDirty(){if(!running)return;if(dirtyQueue.length>=DIRTY_MAX){dirtyQueue.shift();if(dirtyQueue.length===0)washProg=0;loseLife();showBanner('一只脏袜子发霉溜走了');}dirtyQueue.push(randSock());renderDirtyPile();updateSpawnCount();}
 function updateSpawnCount(){const need=DIRTY_MAX-dirtyQueue.length;spawnCountEl.textContent='+'+need;}
 
 function renderDirtyPile(){
@@ -398,7 +398,7 @@ scoreEl.textContent='0';levelEl.textContent='1';washCountEl.textContent='0';
 soapBar.style.width='0%';soapCount.textContent='0/'+SOAP_NEED;
 updateStats();renderHearts();renderAllLines();renderTray();updateWind();updateXP();
 renderDirtyPile();updateSpawnCount();washCaption.textContent='点击盆子洗脏袜子 🧒🪣';washProgBar.style.width='0%';
-resetSpawn();setTimeout(()=>{spawnDirty();setTimeout(()=>spawnDirty(),2000);setTimeout(()=>spawnDirty(),4500);},500);
+resetSpawn();setTimeout(()=>{spawnDirty();setTimeout(()=>spawnDirty(),1500);},500);
 }
 
 document.getElementById('restartBtn').addEventListener('click',resetGame);
@@ -406,7 +406,7 @@ loadPersistent();renderAchievements();updateCalmUI();updateXP();
 renderHearts();renderAllLines();updateWind();renderTray();updateStats();
 soapBar.style.width='0%';soapCount.textContent='0/'+SOAP_NEED;
 renderDirtyPile();updateSpawnCount();
-setTimeout(()=>{spawnDirty();setTimeout(()=>spawnDirty(),2000);setTimeout(()=>spawnDirty(),4500);},500);
+setTimeout(()=>{spawnDirty();setTimeout(()=>spawnDirty(),1500);},500);
 resetSpawn();requestAnimationFrame(loop);
 })();
 </script>
