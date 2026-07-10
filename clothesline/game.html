@@ -1,576 +1,413 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<script>
-(function(){
-  if(typeof tt === 'undefined') return;
-  const _g=localStorage.getItem;const _s=localStorage.setItem;const _r=localStorage.removeItem;
-  localStorage.getItem=function(k){try{return tt.getStorageSync(k)}catch(e){return _g.call(localStorage,k)}};
-  localStorage.setItem=function(k,v){try{tt.setStorageSync(k,v)}catch(e){_s.call(localStorage,k,v)}};
-  localStorage.removeItem=function(k){try{tt.removeStorageSync(k)}catch(e){_r.call(localStorage,k)}};
-  if(tt.postMessage) tt.postMessage({type:'ready'});
-})();
-</script>
+<script>(function(){if(typeof tt==='undefined')return;const _g=localStorage.getItem,_s=localStorage.setItem,_r=localStorage.removeItem;localStorage.getItem=function(k){try{return tt.getStorageSync(k)}catch(e){return _g.call(localStorage,k)}};localStorage.setItem=function(k,v){try{tt.setStorageSync(k,v)}catch(e){_s.call(localStorage,k,v)}};localStorage.removeItem=function(k){try{tt.removeStorageSync(k)}catch(e){_r.call(localStorage,k)}};if(tt.postMessage)tt.postMessage({type:'ready'});})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>晾衣绳配对 - 抖音休闲版</title>
 <style>
-  :root{
-    --sky-top:#bfe0f2;--sky-bottom:#eaf3e2;--ground:#c9dba0;
-    --card:#fffdf8;--border:#ddd9cd;--border-strong:#a89f8c;
-    --text:#2c2c2a;--text-secondary:#5f5e5a;--text-muted:#948d7c;
-    --danger:#c23b3b;--wood:#a9764f;--wood-dark:#8a5d3b;
-    --star:#e6b800;--bomb:#e04040;--gold:#d4a017;--achieve-got:#1D9E75;
-    --soap:#8ec8d4;
-    --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
-  }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
-  body{
-    margin:0;padding:0;overflow:hidden;height:100dvh;width:100vw;
-    background:linear-gradient(180deg,var(--sky-top)0%,var(--sky-bottom)55%,var(--ground)100%);
-    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    display:flex;justify-content:center;align-items:center;
-  }
-  #game{
-    width:100%;max-width:480px;height:100dvh;height:100vh;
-    background:var(--card);padding:calc(6px+var(--safe-top))8px calc(4px+var(--safe-bottom));
-    position:relative;overflow-y:auto;overflow-x:hidden;
-    display:flex;flex-direction:column;
-  }
-  #game::-webkit-scrollbar{display:none;}
-  .gameFill{flex:1;display:flex;flex-direction:column;min-height:0;}
-  h1{font-size:16px;font-weight:700;margin:0 0 2px;text-align:center;letter-spacing:0.5px;}
-  .subtitle{text-align:center;font-size:10px;color:var(--text-muted);margin:0 0 8px;}
-  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:11px;flex-wrap:wrap;gap:3px;}
-  .topbar .stats{display:flex;gap:10px;align-items:center;}
-  .label{color:var(--text-secondary);}
-  .val{font-size:15px;font-weight:700;margin-left:2px;font-variant-numeric:tabular-nums;}
-  #hearts{display:flex;gap:2px;font-size:15px;}
-  .heart{color:var(--border-strong);transition:transform .2s;}
-  .heart.on{color:var(--danger);}
-  .heart.lost{animation:heartLost .4s ease;}
-  @keyframes heartLost{0%{transform:scale(1.4)}100%{transform:scale(1)}}
-  .windrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
-  .windrow .left{display:flex;align-items:center;gap:4px;color:var(--text-muted);font-size:10px;}
-  .combo{font-size:10px;font-weight:700;color:#c17a1f;opacity:0;transition:opacity .2s;}
-  .combo.show{opacity:1;}
-  .windIcon{display:inline-block;animation:blow 1.6s ease-in-out infinite;}
-  @keyframes blow{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
-  .heatRow{display:flex;align-items:center;gap:4px;margin-bottom:4px;min-height:10px;}
-  .heatLabel{font-size:8px;color:var(--text-muted);white-space:nowrap;}
-  .heatBarOuter{flex:1;height:4px;background:#ede9df;border-radius:3px;overflow:hidden;}
-  .heatBarInner{height:100%;width:0%;border-radius:3px;transition:width .3s;background:#c17a1f;}
-  .heatBarInner.heat2{background:#e69d2e;}
-  .heatBarInner.heat3{background:#f0c040;}
-  .heatText{font-size:9px;font-weight:700;min-width:16px;text-align:right;color:var(--text-muted);}
-  .poleRow{display:flex;align-items:flex-start;justify-content:space-between;margin-top:4px;}
-  .pole{width:4px;height:10px;background:var(--wood);border-radius:2px 2px 0 0;flex-shrink:0;margin-top:-1px;}
-  .lineBox{flex:1;border-top:2.5px solid var(--wood-dark);padding-top:18px;padding-bottom:3px;margin:0 2px;position:relative;}
-  .track{display:flex;justify-content:space-between;position:relative;}
-  .slot{width:12.5%;height:56px;position:relative;flex-shrink:0;border-radius:5px;transition:background .1s,box-shadow .1s;}
-  .slot.hoverValid{background:rgba(29,158,117,0.14);box-shadow:inset 0 0 0 2px rgba(29,158,117,0.55);}
-  .slot.hoverInvalid{background:rgba(194,59,59,0.12);box-shadow:inset 0 0 0 2px rgba(194,59,59,0.5);}
-  .sep{border-top:1px dashed var(--border);margin:2px 0;}
-  .sepStrong{height:1px;background:var(--border);margin:6px 0 10px;}
-  .line1wrap{position:relative;}
-  #line1Lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;background:rgba(255,253,248,0.92);border-radius:6px;backdrop-filter:blur(1px);}
-  #line1Lock .lockIcon{width:16px;height:16px;border:2px solid var(--text-muted);border-radius:3px;position:relative;}
-  #line1Lock .lockIcon::before{content:"";position:absolute;top:-8px;left:2px;width:8px;height:8px;border:2px solid var(--text-muted);border-bottom:none;border-radius:5px 5px 0 0;}
-  #line1Lock span{font-size:10px;color:var(--text-muted);}
-  .trayLabel{font-size:10px;color:var(--text-secondary);margin-bottom:4px;}
-  #tray{display:flex;gap:8px;min-height:36px;flex-wrap:wrap;}
-  .sock{width:22px;height:28px;clip-path:polygon(22% 0%,78% 0%,78% 55%,100% 55%,100% 82%,55% 100%,0% 82%,0% 55%,22% 55%);position:relative;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15));}
-  .sock::after{content:"";position:absolute;top:3px;left:0;right:0;height:2px;background:rgba(255,255,255,0.35);}
-  .sockWrap{width:42px;height:44px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;transition:transform .12s;border-radius:6px;position:relative;}
-  .sockWrap:active{cursor:grabbing;transform:scale(1.1);}
-  .clip{position:absolute;top:0;left:50%;transform:translateX(-50%);width:7px;height:5px;background:var(--wood-dark);border-radius:2px;z-index:2;}
-  .badgeStar{position:absolute;top:-6px;right:-6px;font-size:11px;z-index:3;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));animation:badgePop .4s ease;}
-  .badgeBomb{position:absolute;top:-6px;right:-6px;font-size:11px;z-index:3;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));animation:badgePop .4s ease;}
-  .badgeGold{position:absolute;top:-8px;right:-8px;font-size:14px;z-index:3;filter:drop-shadow(0 1px 3px rgba(212,160,23,0.5));animation:badgePop .4s ease;}
-  @keyframes badgePop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
-  .scorePop{position:absolute;left:50%;top:-4px;transform:translateX(-50%);font-size:11px;font-weight:700;color:#c17a1f;pointer-events:none;animation:scoreFloat .7s ease forwards;}
-  @keyframes scoreFloat{0%{opacity:0;transform:translate(-50%,4px)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-18px)}}
-  .starPop{color:var(--star)!important;font-size:14px!important;}
-  .bombPop{color:var(--bomb)!important;font-size:14px!important;}
-  .goldPop{color:var(--gold)!important;font-size:16px!important;}
-  @keyframes pop{0%{transform:scale(1)translateX(-50%);opacity:1}60%{transform:scale(1.3)translateX(-50%);opacity:1}100%{transform:scale(0.15)translateX(-50%);opacity:0}}
-  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes achievePop{0%{transform:scale(0.5)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
-  .pop{animation:pop .35s ease forwards;}
-  .miss{animation:shake .3s ease;}
-  .unlocked{animation:fadeIn .5s ease;}
-  #banner{position:absolute;top:6px;left:50%;transform:translateX(-50%)translateY(-140%);background:#2c2c2a;color:#fffdf8;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;white-space:nowrap;transition:transform .35s ease;z-index:10;}
-  #banner.show{transform:translateX(-50%)translateY(0);}
-  #over{display:none;text-align:center;padding:14px 0 2px;}
-  #over p.title{font-size:15px;font-weight:700;margin:0 0 2px;}
-  #over p.sub{font-size:11px;color:var(--text-secondary);margin:0 0 8px;}
-  button{font-family:inherit;font-size:12px;font-weight:600;padding:7px 16px;border-radius:8px;border:1px solid var(--border-strong);background:var(--card);color:var(--text);cursor:pointer;transition:background .15s,transform .1s;}
-  button:hover{background:#f2eee2;}
-  button:active{transform:scale(0.97);}
-  #restartBtn{display:block;margin:0 auto 6px;}
-  #soundBtn{font-size:14px;padding:2px 7px;border-radius:5px;}
-  #calmBtn{font-size:10px;padding:2px 8px;display:flex;align-items:center;gap:3px;}
-  #calmBtn:disabled{opacity:0.4;cursor:not-allowed;}
-  #calmBtn.ready{box-shadow:0 0 0 2px rgba(55,138,221,0.4);}
-  /* 排行榜弹窗 */
-  #lbPanel{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45);backdrop-filter:blur(3px);justify-content:center;align-items:center;padding:20px;}
-  #lbPanel.show{display:flex;}
-  #lbBox{background:var(--card);border-radius:16px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;padding:16px 16px 12px;box-shadow:0 12px 40px rgba(0,0,0,0.2);}
-  #lbBox h2{font-size:15px;text-align:center;margin:0 0 10px;}
-  .lbEntry{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;margin-bottom:3px;font-size:12px;}
-  .lbEntry:nth-child(1){background:#fff3cd;}.lbEntry:nth-child(2){background:#f0f0f0;}
-  .lbEntry:nth-child(3){background:#fce4d6;}
-  .lbEntry .rank{font-weight:700;width:24px;text-align:center;color:var(--text-muted);}
-  .lbEntry .rank.top{font-size:14px;}.lbEntry .lbScore{font-weight:700;flex:1;text-align:right;}
-  .lbEntry .lbLevel{color:var(--text-muted);font-size:10px;}
-  .lbEntry .lbDate{color:var(--text-muted);font-size:9px;min-width:60px;text-align:right;}
-  .lbEntry.me{border:1.5px solid #378ADD;}
-  #lbClose{display:block;margin:8px auto 0;font-size:11px;padding:4px 20px;}
-  /* 弹窗通用 */
-  .modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45);backdrop-filter:blur(3px);justify-content:center;align-items:center;padding:20px;}
-  .modal.show{display:flex;}
-  .modalBox{background:var(--card);border-radius:16px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto;padding:16px 14px 12px;box-shadow:0 12px 40px rgba(0,0,0,0.2);}
-  .modalBox h2{font-size:14px;text-align:center;margin:0 0 10px;}
-  .modalClose{display:block;margin:10px auto 0;font-size:11px;padding:4px 20px;}
-  .achieveGrid{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
-  .achieveBadge{width:56px;height:52px;border-radius:8px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;color:var(--text-muted);gap:2px;background:#fcfaf6;}
-  .achieveBadge .icon{font-size:16px;line-height:1;}
-  .achieveBadge .aname{font-size:7.5px;line-height:1.1;text-align:center;max-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .achieveBadge.got{border-color:var(--achieve-got);background:#e8f5ee;animation:achievePop .4s ease;}
-  .achieveBadge.got .aname{color:var(--achieve-got);font-weight:600;}
-  .achieveBadge.locked{opacity:0.5;filter:grayscale(0.7);}
-  .achieveBadge.newlyGot{box-shadow:0 0 0 2px var(--star);}
-  .guideItem{display:flex;align-items:center;gap:8px;padding:5px 8px;background:#faf8f3;border-radius:6px;margin-bottom:5px;font-size:11px;}
-  .guideItem .gi{font-size:16px;width:24px;text-align:center;}
-  .guideItem b{display:block;}.guideItem .gd{color:var(--text-muted);font-size:10px;}
-  .guideItem.gold{border:1px solid var(--gold);background:#fff8e6;}
+:root{--sky-top:#bfe0f2;--sky-bottom:#eaf3e2;--ground:#c9dba0;--card:#fffdf8;--border:#ddd9cd;--border-strong:#a89f8c;--text:#2c2c2a;--text-secondary:#5f5e5a;--text-muted:#948d7c;--danger:#c23b3b;--wood:#a9764f;--wood-dark:#8a5d3b;--star:#e6b800;--bomb:#e04040;--gold:#d4a017;--achieve-got:#1D9E75;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+body{margin:0;padding:0;overflow:hidden;height:100dvh;width:100vw;background:linear-gradient(180deg,var(--sky-top)0%,var(--sky-bottom)55%,var(--ground)100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:center;}
+#game{width:100%;max-width:480px;height:100dvh;height:100vh;background:var(--card);padding:calc(6px+var(--safe-top))8px calc(4px+var(--safe-bottom));position:relative;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;}
+#game::-webkit-scrollbar{display:none;}.gameFill{flex:1;display:flex;flex-direction:column;min-height:0;}
+h1{font-size:16px;font-weight:700;margin:0 0 2px;text-align:center;letter-spacing:0.5px;}
+.subtitle{text-align:center;font-size:10px;color:var(--text-muted);margin:0 0 6px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;font-size:11px;flex-wrap:wrap;gap:3px;}
+.topbar .stats{display:flex;gap:10px;align-items:center;}
+.label{color:var(--text-secondary);}
+.val{font-size:15px;font-weight:700;margin-left:2px;font-variant-numeric:tabular-nums;}
+#hearts{display:flex;gap:2px;font-size:15px;}
+.heart{color:var(--border-strong);transition:transform .2s;}.heart.on{color:var(--danger);}.heart.lost{animation:heartLost .4s ease;}
+@keyframes heartLost{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+.windrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.windrow .left{display:flex;align-items:center;gap:4px;color:var(--text-muted);font-size:10px;}
+.combo{font-size:10px;font-weight:700;color:#c17a1f;opacity:0;transition:opacity .2s;}.combo.show{opacity:1;}
+.windIcon{display:inline-block;animation:blow 1.6s ease-in-out infinite;}
+@keyframes blow{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+.heatRow{display:flex;align-items:center;gap:4px;margin-bottom:3px;min-height:10px;}
+.heatLabel{font-size:8px;color:var(--text-muted);white-space:nowrap;}
+.heatBarOuter{flex:1;height:4px;background:#ede9df;border-radius:3px;overflow:hidden;}
+.heatBarInner{height:100%;width:0%;border-radius:3px;transition:width .3s;background:#c17a1f;}.heatBarInner.heat2{background:#e69d2e;}.heatBarInner.heat3{background:#f0c040;}
+.heatText{font-size:9px;font-weight:700;min-width:16px;text-align:right;color:var(--text-muted);}
+.poleRow{display:flex;align-items:flex-start;justify-content:space-between;margin-top:3px;}
+.pole{width:4px;height:10px;background:var(--wood);border-radius:2px 2px 0 0;flex-shrink:0;margin-top:-1px;}
+.lineBox{flex:1;border-top:2.5px solid var(--wood-dark);padding-top:16px;padding-bottom:2px;margin:0 2px;position:relative;}
+.track{display:flex;justify-content:space-between;position:relative;}
+.slot{width:12.5%;height:50px;position:relative;flex-shrink:0;border-radius:5px;transition:background .1s,box-shadow .1s;}
+.slot.hoverValid{background:rgba(29,158,117,0.14);box-shadow:inset 0 0 0 2px rgba(29,158,117,0.55);}
+.slot.hoverInvalid{background:rgba(194,59,59,0.12);box-shadow:inset 0 0 0 2px rgba(194,59,59,0.5);}
+.sep{border-top:1px dashed var(--border);margin:2px 0;}
+.sepStrong{height:1px;background:var(--border);margin:5px 0 8px;}
+.line1wrap{position:relative;}
+#line1Lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;background:rgba(255,253,248,0.92);border-radius:6px;backdrop-filter:blur(1px);}
+#line1Lock .lockIcon{width:16px;height:16px;border:2px solid var(--text-muted);border-radius:3px;position:relative;}
+#line1Lock .lockIcon::before{content:"";position:absolute;top:-8px;left:2px;width:8px;height:8px;border:2px solid var(--text-muted);border-bottom:none;border-radius:5px 5px 0 0;}
+#line1Lock span{font-size:10px;color:var(--text-muted);}
+.trayLabel{font-size:9px;color:var(--text-secondary);margin-bottom:3px;}
+#tray{display:flex;gap:6px;min-height:32px;flex-wrap:wrap;}
+.sock{width:20px;height:26px;clip-path:polygon(22% 0%,78% 0%,78% 55%,100% 55%,100% 82%,55% 100%,0% 82%,0% 55%,22% 55%);position:relative;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15));}
+.sock::after{content:"";position:absolute;top:3px;left:0;right:0;height:2px;background:rgba(255,255,255,0.35);}
+.sockWrap{width:38px;height:40px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;transition:transform .12s;border-radius:6px;position:relative;}
+.sockWrap:active{cursor:grabbing;transform:scale(1.1);}
+.clip{position:absolute;top:0;left:50%;transform:translateX(-50%);width:7px;height:5px;background:var(--wood-dark);border-radius:2px;z-index:2;}
+.badgeStar{position:absolute;top:-6px;right:-6px;font-size:10px;z-index:3;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));animation:badgePop .4s ease;}
+.badgeBomb{position:absolute;top:-6px;right:-6px;font-size:10px;z-index:3;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));animation:badgePop .4s ease;}
+.badgeGold{position:absolute;top:-7px;right:-7px;font-size:12px;z-index:3;filter:drop-shadow(0 1px 3px rgba(212,160,23,0.5));animation:badgePop .4s ease;}
+@keyframes badgePop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+.scorePop{position:absolute;left:50%;top:-4px;transform:translateX(-50%);font-size:10px;font-weight:700;color:#c17a1f;pointer-events:none;animation:scoreFloat .7s ease forwards;}
+@keyframes scoreFloat{0%{opacity:0;transform:translate(-50%,4px)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px)}}
+.starPop{color:var(--star)!important;font-size:13px!important;}.bombPop{color:var(--bomb)!important;font-size:13px!important;}.goldPop{color:var(--gold)!important;font-size:15px!important;}
+@keyframes pop{0%{transform:scale(1)translateX(-50%);opacity:1}60%{transform:scale(1.3)translateX(-50%);opacity:1}100%{transform:scale(0.15)translateX(-50%);opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+@keyframes achievePop{0%{transform:scale(0.5)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.pop{animation:pop .35s ease forwards;}.miss{animation:shake .3s ease;}.unlocked{animation:fadeIn .5s ease;}
+#banner{position:absolute;top:6px;left:50%;transform:translateX(-50%)translateY(-140%);background:#2c2c2a;color:#fffdf8;font-size:10px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap;transition:transform .35s ease;z-index:10;}
+#banner.show{transform:translateX(-50%)translateY(0);}
+#over{display:none;text-align:center;padding:12px 0 2px;}
+#over p.title{font-size:14px;font-weight:700;margin:0 0 2px;}
+#over p.sub{font-size:11px;color:var(--text-secondary);margin:0 0 6px;}
+button{font-family:inherit;font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid var(--border-strong);background:var(--card);color:var(--text);cursor:pointer;transition:background .15s,transform .1s;}
+button:hover{background:#f2eee2;}button:active{transform:scale(0.97);}
+#restartBtn{display:block;margin:0 auto 4px;}#soundBtn{font-size:13px;padding:2px 7px;border-radius:5px;}
+#calmBtn{font-size:10px;padding:2px 7px;display:flex;align-items:center;gap:3px;}
+#calmBtn:disabled{opacity:0.4;cursor:not-allowed;}#calmBtn.ready{box-shadow:0 0 0 2px rgba(55,138,221,0.4);}
+/* 弹窗 */
+.modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45);backdrop-filter:blur(3px);justify-content:center;align-items:center;padding:20px;}
+.modal.show{display:flex;}
+.modalBox{background:var(--card);border-radius:16px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto;padding:16px 14px 12px;box-shadow:0 12px 40px rgba(0,0,0,0.2);}
+.modalBox h2{font-size:14px;text-align:center;margin:0 0 10px;}
+.modalClose{display:block;margin:10px auto 0;font-size:11px;padding:4px 20px;}
+.achieveGrid{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.achieveBadge{width:54px;height:48px;border-radius:7px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:8px;color:var(--text-muted);gap:1px;background:#fcfaf6;}
+.achieveBadge .icon{font-size:15px;line-height:1;}.achieveBadge .aname{font-size:7px;line-height:1.1;text-align:center;max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.achieveBadge.got{border-color:var(--achieve-got);background:#e8f5ee;animation:achievePop .4s ease;}
+.achieveBadge.got .aname{color:var(--achieve-got);font-weight:600;}
+.achieveBadge.locked{opacity:0.5;filter:grayscale(0.7);}.achieveBadge.newlyGot{box-shadow:0 0 0 2px var(--star);}
+.guideItem{display:flex;align-items:center;gap:8px;padding:5px 8px;background:#faf8f3;border-radius:6px;margin-bottom:5px;font-size:10px;}
+.guideItem .gi{font-size:15px;width:22px;text-align:center;}.guideItem b{display:block;}.guideItem .gd{color:var(--text-muted);font-size:9px;}
+.guideItem.gold{border:1px solid var(--gold);background:#fff8e6;}
+#lbPanel{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45);backdrop-filter:blur(3px);justify-content:center;align-items:center;padding:20px;}
+#lbPanel.show{display:flex;}
+#lbBox{background:var(--card);border-radius:16px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;padding:16px 16px 12px;box-shadow:0 12px 40px rgba(0,0,0,0.2);}
+#lbBox h2{font-size:14px;text-align:center;margin:0 0 10px;}
+.lbEntry{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:3px;font-size:11px;}
+.lbEntry:nth-child(1){background:#fff3cd;}.lbEntry:nth-child(2){background:#f0f0f0;}.lbEntry:nth-child(3){background:#fce4d6;}
+.lbEntry .rank{font-weight:700;width:22px;text-align:center;color:var(--text-muted);}.lbEntry .rank.top{font-size:13px;}
+.lbEntry .lbScore{font-weight:700;flex:1;text-align:right;}.lbEntry .lbLevel{color:var(--text-muted);font-size:9px;}
+.lbEntry .lbDate{color:var(--text-muted);font-size:8px;min-width:55px;text-align:right;}.lbEntry.me{border:1.5px solid #378ADD;}
+#lbClose{display:block;margin:8px auto 0;font-size:11px;padding:4px 20px;}
 
-  /* ===== 洗衣场景 ===== */
-  .washSection{border-top:1px dashed var(--border);padding-top:6px;flex:1;display:flex;flex-direction:column;min-height:80px;}
-  .washScene{position:relative;width:100%;flex:1;border-radius:10px;overflow:hidden;cursor:pointer;background:url('images/wash_bg.png') center/cover no-repeat;min-height:60px;}
-  .washScene.dark{filter:brightness(0.3)contrast(0.7);}
-  .washScene.washing{animation:washFlash .6s ease;}
-  @keyframes washFlash{0%,100%{filter:brightness(1)}30%{filter:brightness(1.2)}}
-  .kidPixel{position:absolute;bottom:10%;left:50%;transform:translateX(-50%);height:70%;max-height:85%;width:auto;cursor:pointer;transition:transform .15s;image-rendering:pixelated;z-index:2;}
-  .kidPixel:active{transform:translateX(-50%)scale(0.95);}
-  .kidPixel.waiting{animation:kidBounce 1.2s ease-in-out infinite;}
-  @keyframes kidBounce{0%,100%{transform:translateX(-50%)translateY(0)}50%{transform:translateX(-50%)translateY(-4px)}}
-  .washHint{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(44,44,42,0.6);white-space:nowrap;background:rgba(255,255,255,0.7);padding:1px 10px;border-radius:8px;z-index:5;}
-  .washStatus{display:flex;align-items:center;justify-content:space-between;padding:3px 0;font-size:10px;color:var(--text-secondary);}
-  .washStatus .wCount{font-weight:700;color:var(--text);}
-  .cooldownNote{font-size:8px;color:var(--text-muted);text-align:center;min-height:14px;}
-  .washBtnRow{display:flex;gap:6px;justify-content:center;margin:2px 0;}
+/* 洗衣区 */
+.washSection{padding-top:4px;display:flex;flex-direction:column;}
+.washArea{background:#e8e4da;border-radius:10px;padding:8px 10px;position:relative;display:flex;align-items:center;gap:8px;min-height:38px;}
+.washBtn{font-size:24px;line-height:1;cursor:pointer;flex-shrink:0;padding:2px 4px;border-radius:8px;transition:transform .1s;}
+.washBtn:hover{background:rgba(255,255,255,0.3);}.washBtn:active{transform:scale(0.9);}
+.washBtn.bounce{animation:washBounce .3s ease;}
+@keyframes washBounce{0%{transform:scale(1)rotate(0)}40%{transform:scale(1.2)rotate(-8deg)}100%{transform:scale(1)rotate(0)}}
+.dirtyPile{display:flex;gap:4px;flex-wrap:wrap;align-items:center;min-height:22px;flex:1;}
+.dirtySock{width:14px;height:20px;background:#9c9686;clip-path:polygon(22% 0%,78% 0%,78% 55%,100% 55%,100% 82%,55% 100%,0% 82%,0% 55%,22% 55%);opacity:0.85;border-radius:2px;}
+.dirtySock.target{outline:2px solid #378ADD;outline-offset:1px;border-radius:3px;animation:targetPulse 1.1s ease-in-out infinite;}
+@keyframes targetPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+.washProgOuter{height:5px;background:rgba(255,255,255,0.5);border-radius:4px;overflow:hidden;margin-top:5px;}
+.washProgInner{height:100%;width:0%;background:linear-gradient(90deg,#378ADD,#1D9E75);transition:width .12s ease;border-radius:4px;}
+.washCaption{font-size:9px;color:var(--text-secondary);text-align:center;margin-top:3px;min-height:14px;}
+.bubble{position:absolute;font-size:11px;pointer-events:none;animation:bubbleUp .5s ease forwards;z-index:3;}
+@keyframes bubbleUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-22px)}}
+.spawnCount{font-size:9px;color:var(--text-muted);white-space:nowrap;margin-left:auto;}
 
-  /* ===== 肥皂条 + 战绩 ===== */
-  .soapSection{border-top:1px dashed var(--border);padding-top:5px;margin-top:2px;}
-  .soapRow{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
-  .soapLabel{font-size:9px;color:var(--text-muted);white-space:nowrap;}
-  .soapBarOuter{flex:1;height:8px;background:#e8e4da;border-radius:6px;overflow:hidden;position:relative;}
-  .soapBarInner{height:100%;width:0%;background:linear-gradient(90deg,#8ec8d4,#b8e0ea);border-radius:6px;transition:width .4s ease;position:relative;}
-  .soapBarInner::after{content:"🧼";position:absolute;right:-2px;top:-6px;font-size:12px;}
-  .soapCount{font-size:9px;font-weight:700;min-width:30px;text-align:right;color:var(--text-secondary);}
-  .soapTip{font-size:8px;color:var(--text-muted);text-align:center;min-height:14px;}
+/* 状态行 */
+.washStatus{display:flex;align-items:center;justify-content:space-between;padding:2px 0;font-size:9px;color:var(--text-secondary);}
+.washStatus .wCount{font-weight:700;color:var(--text);}
+.cooldownNote{font-size:8px;color:var(--text-muted);text-align:center;min-height:12px;}
 
-  .statsRow{display:flex;gap:4px;justify-content:space-around;padding:3px 0;}
-  .statCard{flex:1;text-align:center;background:#faf8f3;border-radius:6px;padding:3px 2px;border:1px solid var(--border);}
-  .statCard .sNum{font-size:13px;font-weight:700;color:var(--text);display:block;line-height:1.2;}
-  .statCard .sLbl{font-size:8px;color:var(--text-muted);}
+/* 肥皂 + 战绩 */
+.soapSection{border-top:1px dashed var(--border);padding-top:4px;margin-top:2px;}
+.soapRow{display:flex;align-items:center;gap:4px;margin-bottom:2px;}
+.soapLabel{font-size:8px;color:var(--text-muted);white-space:nowrap;}
+.soapBarOuter{flex:1;height:6px;background:#e8e4da;border-radius:4px;overflow:hidden;position:relative;}
+.soapBarInner{height:100%;width:0%;background:linear-gradient(90deg,#8ec8d4,#b8e0ea);border-radius:4px;transition:width .4s ease;}
+.soapCount{font-size:8px;font-weight:700;min-width:28px;text-align:right;color:var(--text-secondary);}
+.statsRow{display:flex;gap:3px;justify-content:space-around;padding:2px 0;}
+.statCard{flex:1;text-align:center;background:#faf8f3;border-radius:5px;padding:2px;border:1px solid var(--border);}
+.statCard .sNum{font-size:12px;font-weight:700;color:var(--text);display:block;line-height:1.2;}
+.statCard .sLbl{font-size:7px;color:var(--text-muted);}
+.washBtnRow{display:flex;gap:5px;justify-content:center;margin:2px 0;}
+.washBtnRow .mBtn{font-size:9px;padding:3px 10px;border-radius:10px;background:#f2eee2;}
 
-  .rainbowRing{position:absolute;inset:-3px;border-radius:8px;border:2px dashed #b8860b;animation:spin 3s linear infinite;pointer-events:none;}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .calming{box-shadow:inset 0 0 0 3px rgba(55,138,221,0.35)!important;}
-  .xpRow{display:flex;align-items:center;gap:6px;margin:2px 0 4px;}
-  .xpRow .xpLabel{font-size:9px;color:var(--text-muted);white-space:nowrap;}
-  .xpBarOuter{flex:1;height:5px;background:#e8e4da;border-radius:4px;overflow:hidden;}
-  .xpBarInner{height:100%;width:0%;background:linear-gradient(90deg,#1D9E75,#378ADD);border-radius:4px;transition:width .3s ease;}
-  .hint{text-align:center;font-size:8px;color:var(--text-muted);margin-top:3px;line-height:1.3;}
+.rainbowRing{position:absolute;inset:-3px;border-radius:8px;border:2px dashed #b8860b;animation:spin 3s linear infinite;pointer-events:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.calming{box-shadow:inset 0 0 0 3px rgba(55,138,221,0.35)!important;}
+.xpRow{display:flex;align-items:center;gap:5px;margin:2px 0 3px;}
+.xpRow .xpLabel{font-size:8px;color:var(--text-muted);white-space:nowrap;}
+.xpBarOuter{flex:1;height:4px;background:#e8e4da;border-radius:3px;overflow:hidden;}
+.xpBarInner{height:100%;width:0%;background:linear-gradient(90deg,#1D9E75,#378ADD);border-radius:3px;transition:width .3s ease;}
+.hint{text-align:center;font-size:7.5px;color:var(--text-muted);margin-top:2px;line-height:1.2;}
 
-  @media(max-width:380px){.slot{height:48px;}.sock{width:18px;height:24px;}.sockWrap{width:36px;height:38px;}h1{font-size:14px;}.topbar{font-size:10px;}.lineBox{padding-top:14px;}}
-  @media(max-height:640px){
-    #game{padding:8px;}.slot{height:44px;}
-    .sock{width:17px;height:22px;}.sockWrap{width:34px;height:34px;}
-    h1{font-size:13px;margin-bottom:1px;}.topbar{margin-bottom:3px;}.subtitle{display:none;}
-    .washScene{min-height:50px;}.kidPixel{height:65%;}
-  }
+@media(max-width:380px){.slot{height:44px;}.sock{width:18px;height:22px;}.sockWrap{width:34px;height:36px;}h1{font-size:14px;}.topbar{font-size:10px;}.lineBox{padding-top:14px;}}
+@media(max-height:640px){#game{padding:6px;}.slot{height:40px;}.sock{width:16px;height:20px;}.sockWrap{width:30px;height:32px;}h1{font-size:13px;}.topbar{margin-bottom:2px;}.subtitle{display:none;}}
 </style>
 </head>
 <body>
 <div id="game">
-  <div id="banner"></div>
-  <h1>晾衣绳配对</h1>
-  <p class="subtitle">🧼洗袜子→🧦晾干配对</p>
+<div id="banner"></div>
+<h1>晾衣绳配对</h1>
+<p class="subtitle">洗脏袜→晾干配对</p>
 
-  <div class="topbar">
-    <div class="stats">
-      <span><span class="label">得分</span><span class="val" id="score">0</span></span>
-      <span><span class="label">等级</span><span class="val" id="level">1</span></span>
-    </div>
-    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-      <button id="calmBtn" title="消耗能量短暂止风">🧊 <span id="calmCount">0</span></button>
-      <button id="soundBtn" title="开关音效">🔊</button>
-      <div id="hearts"></div>
-    </div>
-  </div>
-
-  <div class="xpRow">
-    <span class="xpLabel" id="xpLabel">0/5</span>
-    <div class="xpBarOuter"><div class="xpBarInner" id="xpBar"></div></div>
-  </div>
-
-  <div class="windrow">
-    <span class="left"><span class="windIcon">🌬</span><span id="windLabel">风力 1</span></span>
-    <span class="combo" id="comboLabel"></span>
-  </div>
-  <div class="heatRow">
-    <span class="heatLabel">🔥 连击</span>
-    <div class="heatBarOuter"><div class="heatBarInner" id="heatBar"></div></div>
-    <span class="heatText" id="heatText">0</span>
-  </div>
-
-  <div class="poleRow">
-    <div class="pole"></div>
-    <div class="lineBox">
-      <div class="track" id="line0Track"></div>
-    </div>
-    <div class="pole"></div>
-  </div>
-  <div class="sep"></div>
-  <div class="poleRow">
-    <div class="pole"></div>
-    <div class="lineBox line1wrap">
-      <div class="track" id="line1Track"></div>
-      <div id="line1Lock"><div class="lockIcon"></div><span>等级 3 解锁第二根绳</span></div>
-    </div>
-    <div class="pole"></div>
-  </div>
-  <div class="sepStrong"></div>
-
-  <div class="gameFill">
-  <div class="trayLabel">🧺 晾衣篮（已洗好的袜子，拖绳配对消除）</div>
-  <div id="tray"></div>
-
-  <!-- 洗衣场景 -->
-  <div class="washSection">
-    <div class="washScene dark" id="washScene">
-      <img src="images/wash_kid.png" class="kidPixel" id="kidChar" alt="洗袜子的小孩">
-      <div class="washHint" id="washHint"></div>
-    </div>
-    <div class="washStatus">
-      <span>🧺 已洗 <span class="wCount" id="washCount">0</span> 双</span>
-      <span id="cooldownNote" class="cooldownNote">点击小孩洗袜子 🧦</span>
-    </div>
-
-    <!-- 肥皂条 -->
-    <div class="soapSection">
-      <div class="soapRow">
-        <span class="soapLabel">🧼 肥皂</span>
-        <div class="soapBarOuter"><div class="soapBarInner" id="soapBar"></div></div>
-        <span class="soapCount" id="soapCount">0/3</span>
-      </div>
-      <div class="soapTip" id="soapTip">洗袜子攒肥皂，满3个换🧊稳一稳</div>
-    </div>
-
-    <!-- 本局战绩 -->
-    <div class="statsRow">
-      <div class="statCard"><span class="sNum" id="statWash">0</span><span class="sLbl">洗了</span></div>
-      <div class="statCard"><span class="sNum" id="statMatch">0</span><span class="sLbl">配对</span></div>
-      <div class="statCard"><span class="sNum" id="statCombo">0</span><span class="sLbl">最高连击</span></div>
-      <div class="statCard"><span class="sNum" id="statScore">0</span><span class="sLbl">得分</span></div>
-    </div>
-
-    <div class="washBtnRow">
-      <button class="mBtn" id="achieveModalBtn" style="font-size:10px;padding:3px 10px;border-radius:12px;background:#f2eee2;">🏅 成就</button>
-      <button class="mBtn" id="guideModalBtn" style="font-size:10px;padding:3px 10px;border-radius:12px;background:#f2eee2;">🧦 图鉴</button>
-      <button class="mBtn" id="lbModalBtn" style="font-size:10px;padding:3px 10px;border-radius:12px;background:#f2eee2;">🏆 排行榜</button>
-    </div>
-  </div>
-  </div><!-- /gameFill -->
-
-  <div id="over">
-    <p class="title">游戏结束</p>
-    <p class="sub" id="finalScore"></p>
-    <button id="restartBtn">再来一局</button>
-  </div>
-  <div class="hint">🧊配对4次攒🧼肥皂 · 🪙金袜拖绳+50 · 点击小孩洗袜子再晾</div>
+<div class="topbar">
+<div class="stats">
+<span><span class="label">得分</span><span class="val" id="score">0</span></span>
+<span><span class="label">等级</span><span class="val" id="level">1</span></span>
 </div>
+<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+<button id="calmBtn">🧊 <span id="calmCount">0</span></button>
+<button id="soundBtn">🔊</button>
+<div id="hearts"></div>
+</div></div>
+
+<div class="xpRow"><span class="xpLabel" id="xpLabel">0/5</span><div class="xpBarOuter"><div class="xpBarInner" id="xpBar"></div></div></div>
+<div class="windrow"><span class="left"><span class="windIcon">🌬</span><span id="windLabel">风力 1</span></span><span class="combo" id="comboLabel"></span></div>
+<div class="heatRow"><span class="heatLabel">🔥 连击</span><div class="heatBarOuter"><div class="heatBarInner" id="heatBar"></div></div><span class="heatText" id="heatText">0</span></div>
+
+<div class="poleRow"><div class="pole"></div><div class="lineBox"><div class="track" id="line0Track"></div></div><div class="pole"></div></div>
+<div class="sep"></div>
+<div class="poleRow"><div class="pole"></div><div class="lineBox line1wrap"><div class="track" id="line1Track"></div><div id="line1Lock"><div class="lockIcon"></div><span>等级 3 解锁第二根绳</span></div></div><div class="pole"></div></div>
+<div class="sepStrong"></div>
+
+<div class="gameFill">
+<div class="trayLabel">🧺 晾衣篮（已洗好的袜子，拖绳配对消除）</div>
+<div id="tray"></div>
+
+<!-- 洗衣区 -->
+<div class="washSection">
+<div class="washArea">
+<div id="washBtn" class="washBtn" title="点击洗袜子">🧒🪣</div>
+<div class="dirtyPile" id="dirtyPile"></div>
+<span class="spawnCount" id="spawnCount">+0</span>
+</div>
+<div class="washProgOuter"><div class="washProgInner" id="washProgBar"></div></div>
+<div class="washCaption" id="washCaption">点击盆子，帮小孩洗脏袜子</div>
+
+<div class="washStatus">
+<span>🧺 已洗 <span class="wCount" id="washCount">0</span> 双</span>
+<span id="cooldownNote" class="cooldownNote">点击🪣洗袜子</span>
+</div>
+
+<!-- 肥皂 -->
+<div class="soapSection">
+<div class="soapRow">
+<span class="soapLabel">🧼 肥皂</span>
+<div class="soapBarOuter"><div class="soapBarInner" id="soapBar"></div></div>
+<span class="soapCount" id="soapCount">0/3</span>
+</div></div>
+
+<!-- 战绩 -->
+<div class="statsRow">
+<div class="statCard"><span class="sNum" id="statWash">0</span><span class="sLbl">洗了</span></div>
+<div class="statCard"><span class="sNum" id="statMatch">0</span><span class="sLbl">配对</span></div>
+<div class="statCard"><span class="sNum" id="statCombo">0</span><span class="sLbl">最高连击</span></div>
+<div class="statCard"><span class="sNum" id="statScore">0</span><span class="sLbl">得分</span></div>
+</div>
+
+<div class="washBtnRow">
+<button class="mBtn" id="achieveModalBtn">🏅 成就</button>
+<button class="mBtn" id="guideModalBtn">🧦 图鉴</button>
+<button class="mBtn" id="lbModalBtn">🏆 排行榜</button>
+</div>
+</div><!-- /washSection -->
+</div><!-- /gameFill -->
+
+<div id="over">
+<p class="title">游戏结束</p>
+<p class="sub" id="finalScore"></p>
+<button id="restartBtn">再来一局</button>
+</div>
+<div class="hint">🧊配对4次攒肥皂 · 🪙金袜拖绳+50 · 🧒🪣洗脏袜再晾</div>
+</div><!-- /game -->
 
 <!-- 弹窗 -->
 <div class="modal" id="achieveModal"><div class="modalBox"><h2>🏅 成就 <span id="achieveModalCount">0/9</span></h2><div class="achieveGrid" id="achieveGrid"></div><button class="modalClose" id="achieveModalClose">关闭</button></div></div>
 <div class="modal" id="guideModal"><div class="modalBox"><h2>🧦 袜子图鉴</h2>
-<div class="guideItem"><span class="gi">🧦</span><div><b>普通袜子</b><span class="gd">6种颜色，相邻同色配对消除</span></div></div>
-<div class="guideItem"><span class="gi">🌈</span><div><b>彩虹袜</b><span class="gd">8%概率，能跟任何颜色配对+20分</span></div></div>
-<div class="guideItem"><span class="gi">⭐</span><div><b>星袜</b><span class="gd">约7%概率，配对得分×2</span></div></div>
-<div class="guideItem"><span class="gi">💣</span><div><b>炸弹袜</b><span class="gd">约7%概率，拖绳引爆清除自身+相邻</span></div></div>
-<div class="guideItem gold"><span class="gi">🪙</span><div><b>金袜</b><span class="gd">5%概率，拖绳即得50分不占位</span></div></div>
+<div class="guideItem"><span class="gi">🧦</span><div><b>普通袜子</b><span class="gd">6色，相邻同色配对消除</span></div></div>
+<div class="guideItem"><span class="gi">🌈</span><div><b>彩虹袜</b><span class="gd">8%概率，配任何色+20分</span></div></div>
+<div class="guideItem"><span class="gi">⭐</span><div><b>星袜</b><span class="gd">7%概率，配对得分×2</span></div></div>
+<div class="guideItem"><span class="gi">💣</span><div><b>炸弹袜</b><span class="gd">7%概率，引爆清自身+相邻</span></div></div>
+<div class="guideItem gold"><span class="gi">🪙</span><div><b>金袜</b><span class="gd">5%概率，拖绳+50不占位</span></div></div>
 <button class="modalClose" id="guideModalClose">关闭</button></div></div>
 <div id="lbPanel"><div id="lbBox"><h2>🏆 排行榜</h2><div id="lbList"></div><button id="lbClose">关闭</button></div></div>
 
 <script>
 (function(){
-  const colors=[
-    {n:'coral',h:'#D85A30'},{n:'teal',h:'#1D9E75'},{n:'blue',h:'#378ADD'},
-    {n:'pink',h:'#D4537E'},{n:'purple',h:'#7F77DD'},{n:'amber',h:'#BA7517'}
-  ];
-  const SLOTS=7,TRAYMAX=4,LINE2_LEVEL=3;
-  const SPEC_WEIGHTS={star:0.07,bomb:0.07,gold:0.05};
-  const SOAP_NEED=3; // 3次配对=1肥皂
+const colors=[{n:'coral',h:'#D85A30'},{n:'teal',h:'#1D9E75'},{n:'blue',h:'#378ADD'},{n:'pink',h:'#D4537E'},{n:'purple',h:'#7F77DD'},{n:'amber',h:'#BA7517'}];
+const SLOTS=7,TRAYMAX=4,LINE2_LEVEL=3,DIRTY_MAX=4,SOAP_NEED=3;
+const SPEC_WEIGHTS={star:0.07,bomb:0.07,gold:0.05};
 
-  const ACHIEVEMENTS=[
-    {id:'first',icon:'🧦',name:'初次配对',desc:'完成第1次配对',check:()=>matches>=1},
-    {id:'combo5',icon:'🔥',name:'连击达人',desc:'达到5连击',check:()=>combo>=5},
-    {id:'bomb3',icon:'💣',name:'拆弹专家',desc:'使用3次炸弹袜',check:()=>stats.bombUsed>=3},
-    {id:'star5',icon:'⭐',name:'星袜猎手',desc:'配对5次星袜',check:()=>stats.starMatched>=5},
-    {id:'gold3',icon:'🪙',name:'淘金者',desc:'收集5次金袜',check:()=>stats.goldCollected>=5},
-    {id:'calm5',icon:'🧊',name:'风平浪静',desc:'使用5次稳一稳',check:()=>stats.calmUsed>=5},
-    {id:'rainbow3',icon:'🌈',name:'色彩大师',desc:'配对3次彩虹袜',check:()=>stats.rainbowMatched>=3},
-    {id:'score1k',icon:'🏆',name:'高分王',desc:'单局达到1000分',check:()=>score>=1000},
-    {id:'line2pro',icon:'🪢',name:'双绳大师',desc:'解锁双绳后配20对',check:()=>line2Unlocked&&stats.line2Matches>=20},
-  ];
+const ACHIEVEMENTS=[
+{id:'first',icon:'🧦',name:'初次配对',desc:'完成第1次配对',check:()=>matches>=1},
+{id:'combo5',icon:'🔥',name:'连击达人',desc:'达到5连击',check:()=>combo>=5},
+{id:'bomb3',icon:'💣',name:'拆弹专家',desc:'使用3次炸弹袜',check:()=>stats.bombUsed>=3},
+{id:'star5',icon:'⭐',name:'星袜猎手',desc:'配对5次星袜',check:()=>stats.starMatched>=5},
+{id:'gold3',icon:'🪙',name:'淘金者',desc:'收集5次金袜',check:()=>stats.goldCollected>=5},
+{id:'calm5',icon:'🧊',name:'风平浪静',desc:'使用5次稳一稳',check:()=>stats.calmUsed>=5},
+{id:'rainbow3',icon:'🌈',name:'色彩大师',desc:'配对3次彩虹袜',check:()=>stats.rainbowMatched>=3},
+{id:'score1k',icon:'🏆',name:'高分王',desc:'单局达到1000分',check:()=>score>=1000},
+{id:'line2pro',icon:'🪢',name:'双绳大师',desc:'解锁双绳后配20对',check:()=>line2Unlocked&&stats.line2Matches>=20},
+];
 
-  let lines=[new Array(SLOTS).fill(null),new Array(SLOTS).fill(null)];
-  let queue=[];let score=0,level=1,lives=3,matches=0,colorsUnlocked=4;
-  let combo=0,comboTimer=null,maxCombo=0;
-  let spawnTimer=null,running=true,line2Unlocked=false,soundOn=true;
-  let calmCharges=0,calmUntil=0,comboBank=0,xpInLevel=0,washCount=0;
-  let soapProgress=0; // 0-3, 满3自动换一个🧊
-  let stats={bombUsed:0,starMatched:0,calmUsed:0,rainbowMatched:0,line2Matches:0,goldCollected:0};
-  let gotAchievements=[],newlyGot=[];
-  let washing=false,washCooldown=false,sceneLit=false;
+let lines=[new Array(SLOTS).fill(null),new Array(SLOTS).fill(null)];
+let queue=[];let score=0,level=1,lives=3,matches=0,colorsUnlocked=4;
+let combo=0,comboTimer=null,maxCombo=0;
+let spawnTimer=null,running=true,line2Unlocked=false,soundOn=true;
+let calmCharges=0,calmUntil=0,comboBank=0,xpInLevel=0,washCount=0,soapProgress=0;
+let dirtyQueue=[],washProg=0;
+let stats={bombUsed:0,starMatched:0,calmUsed:0,rainbowMatched:0,line2Matches:0,goldCollected:0};
+let gotAchievements=[],newlyGot=[];
 
-  const RAINBOW='conic-gradient(#D85A30,#1D9E75,#378ADD,#D4537E,#7F77DD,#BA7517,#D85A30)';
-  const wrap=document.getElementById('game');
-  const track=[document.getElementById('line0Track'),document.getElementById('line1Track')];
-  const line1Lock=document.getElementById('line1Lock');const tray=document.getElementById('tray');
-  const scoreEl=document.getElementById('score');const levelEl=document.getElementById('level');
-  const heartsEl=document.getElementById('hearts');const windLabel=document.getElementById('windLabel');
-  const comboLabel=document.getElementById('comboLabel');const overEl=document.getElementById('over');
-  const banner=document.getElementById('banner');const soundBtn=document.getElementById('soundBtn');
-  const calmBtn=document.getElementById('calmBtn');const calmCount=document.getElementById('calmCount');
-  const xpBar=document.getElementById('xpBar');const xpLabel=document.getElementById('xpLabel');
-  const heatBar=document.getElementById('heatBar');const heatText=document.getElementById('heatText');
-  const washScene=document.getElementById('washScene');const kidChar=document.getElementById('kidChar');
-  const armL=null;const armR=null;
-  const washHint=document.getElementById('washHint');const washCountEl=document.getElementById('washCount');
-  const cooldownNote=document.getElementById('cooldownNote');
-  const soapBar=document.getElementById('soapBar');const soapCount=document.getElementById('soapCount');
-  const soapTip=document.getElementById('soapTip');
-  const statWash=document.getElementById('statWash');const statMatch=document.getElementById('statMatch');
-  const statCombo=document.getElementById('statCombo');const statScore=document.getElementById('statScore');
-  const achieveGrid=document.getElementById('achieveGrid');const achieveModal=document.getElementById('achieveModal');
-  const achieveModalBtn=document.getElementById('achieveModalBtn');const achieveModalClose=document.getElementById('achieveModalClose');
-  const achieveModalCount=document.getElementById('achieveModalCount');
-  const guideModal=document.getElementById('guideModal');const guideModalBtn=document.getElementById('guideModalBtn');
-  const guideModalClose=document.getElementById('guideModalClose');
-  const lbPanel=document.getElementById('lbPanel');const lbList=document.getElementById('lbList');
-  const lbBtn=document.getElementById('lbModalBtn');const lbClose=document.getElementById('lbClose');
+function washNeeded(){return Math.min(2+Math.floor((level-1)/2),5);}
+function spawnRate(){return Math.max(4000,12000-level*1200);}
 
-  const ACH_KEY='cl_ach';const LB_KEY='cl_lb';
+const RAINBOW='conic-gradient(#D85A30,#1D9E75,#378ADD,#D4537E,#7F77DD,#BA7517,#D85A30)';
+const $=id=>document.getElementById(id);
+const wrap=$('game');const track=[$('line0Track'),$('line1Track')];
+const line1Lock=$('line1Lock');const tray=$('tray');
+const scoreEl=$('score');const levelEl=$('level');const heartsEl=$('hearts');
+const windLabel=$('windLabel');const comboLabel=$('comboLabel');const overEl=$('over');
+const banner=$('banner');const soundBtn=$('soundBtn');
+const calmBtn=$('calmBtn');const calmCount=$('calmCount');
+const xpBar=$('xpBar');const xpLabel=$('xpLabel');const heatBar=$('heatBar');const heatText=$('heatText');
+const washBtn=$('washBtn');const dirtyPileEl=$('dirtyPile');const washProgBar=$('washProgBar');
+const washCaption=$('washCaption');const washCountEl=$('washCount');const cooldownNote=$('cooldownNote');
+const spawnCountEl=$('spawnCount');
+const soapBar=$('soapBar');const soapCount=$('soapCount');
+const statWash=$('statWash');const statMatch=$('statMatch');const statCombo=$('statCombo');const statScore=$('statScore');
+const achieveGrid=$('achieveGrid');const achieveModal=$('achieveModal');
+const achieveModalBtn=$('achieveModalBtn');const achieveModalClose=$('achieveModalClose');
+const achieveModalCount=$('achieveModalCount');
+const guideModal=$('guideModal');const guideModalBtn=$('guideModalBtn');const guideModalClose=$('guideModalClose');
+const lbPanel=$('lbPanel');const lbList=$('lbList');const lbBtn=$('lbModalBtn');const lbClose=$('lbClose');
 
-  function loadPersistent(){try{const a=localStorage.getItem(ACH_KEY);if(a)gotAchievements=JSON.parse(a)}catch(e){}}
-  function saveAchievements(){try{localStorage.setItem(ACH_KEY,JSON.stringify(gotAchievements))}catch(e){}}
+const ACH_KEY='cl_ach';const LB_KEY='cl_lb';
 
-  function loadLB(){try{return JSON.parse(localStorage.getItem(LB_KEY))||[]}catch(e){return[]}}
-  function saveLB(d){try{localStorage.setItem(LB_KEY,JSON.stringify(d))}catch(e){}}
-  function submitScore(sc,lv){
-    const lb=loadLB();lb.push({score:sc,level:lv,date:new Date().toLocaleDateString('zh-CN')});
-    lb.sort((a,b)=>b.score-a.score);if(lb.length>20)lb.length=20;saveLB(lb);
-    if(typeof tt!=='undefined'&&tt.postMessage)tt.postMessage({type:'score_update',score:sc,level:lv});
-    return lb.findIndex((e,i)=>e.score===sc&&e.level===lv&&i<20);
-  }
-  function renderLB(h){
-    const lb=loadLB();
-    if(!lb.length){lbList.innerHTML='<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0;">暂无记录</p>';return;}
-    lbList.innerHTML=lb.slice(0,20).map((e,i)=>{
-      const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-      return '<div class="lbEntry'+(h!==void 0&&i===h?' me':'')+'"><span class="rank'+(i<3?' top':'')+'">'+m+'</span><span class="lbScore">'+e.score+'</span><span class="lbLevel">Lv.'+e.level+'</span><span class="lbDate">'+e.date+'</span></div>';
-    }).join('');
-  }
+function loadPersistent(){try{const a=localStorage.getItem(ACH_KEY);if(a)gotAchievements=JSON.parse(a)}catch(e){}}
+function saveAchievements(){try{localStorage.setItem(ACH_KEY,JSON.stringify(gotAchievements))}catch(e){}}
+function loadLB(){try{return JSON.parse(localStorage.getItem(LB_KEY))||[]}catch(e){return[]}}
+function saveLB(d){try{localStorage.setItem(LB_KEY,JSON.stringify(d))}catch(e){}}
+function submitScore(sc,lv){const lb=loadLB();lb.push({score:sc,level:lv,date:new Date().toLocaleDateString('zh-CN')});lb.sort((a,b)=>b.score-a.score);if(lb.length>20)lb.length=20;saveLB(lb);if(typeof tt!=='undefined'&&tt.postMessage)tt.postMessage({type:'score_update',score:sc,level:lv});return lb.findIndex((e,i)=>e.score===sc&&e.level===lv&&i<20);}
+function renderLB(h){const lb=loadLB();if(!lb.length){lbList.innerHTML='<p style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0;">暂无记录</p>';return;}lbList.innerHTML=lb.slice(0,20).map((e,i)=>{const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);return '<div class="lbEntry'+(h!==void 0&&i===h?' me':'')+'"><span class="rank'+(i<3?' top':'')+'">'+m+'</span><span class="lbScore">'+e.score+'</span><span class="lbLevel">Lv.'+e.level+'</span><span class="lbDate">'+e.date+'</span></div>';}).join('');}
 
-  function openModal(el){el.classList.add('show');}
-  function closeModal(el){el.classList.remove('show');}
-  function onModalBgClick(e,el){if(e.target===el)closeModal(el);}
-  lbBtn.addEventListener('click',()=>{renderLB();openModal(lbPanel);});
-  lbClose.addEventListener('click',()=>closeModal(lbPanel));
-  lbPanel.addEventListener('click',e=>onModalBgClick(e,lbPanel));
+function openModal(el){el.classList.add('show');}
+function closeModal(el){el.classList.remove('show');}
+function onModalBgClick(e,el){if(e.target===el)closeModal(el);}
+lbBtn.addEventListener('click',()=>{renderLB();openModal(lbPanel);});
+lbClose.addEventListener('click',()=>closeModal(lbPanel));
+lbPanel.addEventListener('click',e=>onModalBgClick(e,lbPanel));
 
-  function renderAchievements(){
-    achieveGrid.innerHTML=ACHIEVEMENTS.map(a=>{
-      const got=gotAchievements.includes(a.id);const isNew=newlyGot.includes(a.id);
-      return '<div class="achieveBadge'+(got?' got':' locked')+(isNew?' newlyGot':'')+'" title="'+a.desc+'">'
-        +'<span class="icon">'+(got?a.icon:'🔒')+'</span><span class="aname">'+(got?a.name:'???')+'</span></div>';
-    }).join('');
-    achieveModalCount.textContent=gotAchievements.length+'/'+ACHIEVEMENTS.length;
-  }
-  function checkAchievements(){
-    ACHIEVEMENTS.forEach(a=>{
-      if(gotAchievements.includes(a.id))return;
-      if(a.check()){gotAchievements.push(a.id);newlyGot.push(a.id);saveAchievements();renderAchievements();showBanner('🏅 '+a.icon+' '+a.name);beep(880,0.3,'sine');setTimeout(()=>beep(1100,0.2,'sine'),150);}
-    });
-  }
-  achieveModalBtn.addEventListener('click',()=>{renderAchievements();openModal(achieveModal);});
-  achieveModalClose.addEventListener('click',()=>closeModal(achieveModal));
-  achieveModal.addEventListener('click',e=>onModalBgClick(e,achieveModal));
-  guideModalBtn.addEventListener('click',()=>openModal(guideModal));
-  guideModalClose.addEventListener('click',()=>closeModal(guideModal));
-  guideModal.addEventListener('click',e=>onModalBgClick(e,guideModal));
+function renderAchievements(){achieveGrid.innerHTML=ACHIEVEMENTS.map(a=>{const got=gotAchievements.includes(a.id);const isNew=newlyGot.includes(a.id);return '<div class="achieveBadge'+(got?' got':' locked')+(isNew?' newlyGot':'')+'" title="'+a.desc+'"><span class="icon">'+(got?a.icon:'🔒')+'</span><span class="aname">'+(got?a.name:'???')+'</span></div>';}).join('');achieveModalCount.textContent=gotAchievements.length+'/'+ACHIEVEMENTS.length;}
+function checkAchievements(){ACHIEVEMENTS.forEach(a=>{if(gotAchievements.includes(a.id))return;if(a.check()){gotAchievements.push(a.id);newlyGot.push(a.id);saveAchievements();renderAchievements();showBanner('🏅 '+a.icon+' '+a.name);beep(880,0.3,'sine');setTimeout(()=>beep(1100,0.2,'sine'),150);}});}
+achieveModalBtn.addEventListener('click',()=>{renderAchievements();openModal(achieveModal);});
+achieveModalClose.addEventListener('click',()=>closeModal(achieveModal));
+achieveModal.addEventListener('click',e=>onModalBgClick(e,achieveModal));
+guideModalBtn.addEventListener('click',()=>openModal(guideModal));
+guideModalClose.addEventListener('click',()=>closeModal(guideModal));
+guideModal.addEventListener('click',e=>onModalBgClick(e,guideModal));
 
-  // ===== 肥皂系统 =====
-  function addSoap(amount){
-    soapProgress+=amount;
-    const pct=Math.min(100,(soapProgress/SOAP_NEED)*100);
-    soapBar.style.width=pct+'%';
-    soapCount.textContent=Math.min(soapProgress,SOAP_NEED)+'/'+SOAP_NEED;
-    if(soapProgress>=SOAP_NEED){
-      soapProgress-=SOAP_NEED;
-      calmCharges=Math.min(calmCharges+1,3);
-      updateCalmUI();
-      showBanner('🧼 肥皂换🧊 稳一稳 +1！');
-      beep(660,0.15,'sine');
-      setTimeout(()=>beep(880,0.15,'sine'),120);
-      // 更新进度条
-      const pct2=Math.min(100,(soapProgress/SOAP_NEED)*100);
-      soapBar.style.width=pct2+'%';
-      soapCount.textContent=soapProgress+'/'+SOAP_NEED;
-    }
-    soapTip.textContent='🧼 '+(SOAP_NEED-soapProgress)+' 次配对换🧊稳一稳';
-  }
+// 肥皂
+function addSoap(amount){soapProgress+=amount;const pct=Math.min(100,(soapProgress/SOAP_NEED)*100);soapBar.style.width=pct+'%';soapCount.textContent=Math.min(soapProgress,SOAP_NEED)+'/'+SOAP_NEED;if(soapProgress>=SOAP_NEED){soapProgress-=SOAP_NEED;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();showBanner('🧼 肥皂换🧊');beep(660,0.15,'sine');setTimeout(()=>beep(880,0.15,'sine'),120);soapBar.style.width=Math.min(100,(soapProgress/SOAP_NEED)*100)+'%';soapCount.textContent=soapProgress+'/'+SOAP_NEED;}}
+function updateStats(){statWash.textContent=washCount;statMatch.textContent=matches;statCombo.textContent=maxCombo;statScore.textContent=score;}
 
-  // ===== 更新战绩 =====
-  function updateStats(){
-    statWash.textContent=washCount;
-    statMatch.textContent=matches;
-    statCombo.textContent=maxCombo;
-    statScore.textContent=score;
-  }
+// ===== 洗衣核心 =====
+function randColor(){if(Math.random()<0.08)return{n:'rainbow',h:RAINBOW,rainbow:true};return colors[Math.floor(Math.random()*colorsUnlocked)];}
+function randSock(){const base=randColor();if(base.n!=='rainbow'){for(const[t,c]of Object.entries(SPEC_WEIGHTS)){if(Math.random()<c){base.special=t;break;}}}return base;}
+function spawnDirty(){if(!running||dirtyQueue.length>=DIRTY_MAX)return;dirtyQueue.push(randSock());renderDirtyPile();updateSpawnCount();}
+function updateSpawnCount(){const need=DIRTY_MAX-dirtyQueue.length;spawnCountEl.textContent='+'+need;}
 
-  // ===== 洗衣场景 =====
-  function lightUpScene(){
-    if(sceneLit)return;
-    sceneLit=true;washScene.classList.remove('dark');washHint.textContent='👆 点击小孩洗袜子';kidChar.classList.add('waiting');
-    setTimeout(()=>doWash(),500);setTimeout(()=>doWash(),1800);
-  }
-  function doWash(){
-    if(!running||washing||washCooldown)return;
-    if(queue.length>=TRAYMAX){cooldownNote.textContent='⚠️ 晾衣篮满了，先晾袜子！';return;}
-    washing=true;washCooldown=true;cooldownNote.textContent='🧼 正在洗袜子...';
-    washScene.classList.add('washing');kidChar.classList.remove('waiting');
-    // 泡泡效果
-    ['○','○','○','○'].forEach((b,i)=>{
-      const el=document.createElement('span');el.className='bubble';el.textContent=b;
-      el.style.left=(20+Math.random()*60)+'%';el.style.animationDelay=(i*0.25)+'s';
-      washScene.appendChild(el);setTimeout(()=>el.remove(),2000);
-    });
-    beep(400,0.08,'sine');setTimeout(()=>beep(450,0.08,'sine'),100);setTimeout(()=>beep(400,0.08,'sine'),200);
-    setTimeout(()=>{
-      const count=1+Math.floor(Math.random()*2);
-      for(let i=0;i<count;i++){if(queue.length>=TRAYMAX)break;queue.push(randSock());washCount++;}
-      washCountEl.textContent=washCount;updateStats();
-      renderTray();washing=false;
-      washScene.classList.remove('washing');cooldownNote.textContent='✅ 洗好了 '+count+' 双！';kidChar.classList.add('waiting');
-      setTimeout(()=>{
-        washCooldown=false;
-        if(running&&queue.length<TRAYMAX)cooldownNote.textContent='点击小孩继续洗袜子 🧦';
-        else if(queue.length>=TRAYMAX)cooldownNote.textContent='🧺 晾衣篮已满，先配对消除吧';
-        else cooldownNote.textContent='点击小孩洗袜子 🧦';
-      },800);
-    },800);
-  }
-  kidChar.addEventListener('click',(e)=>{e.stopPropagation();if(sceneLit)doWash();else lightUpScene();});
-  washScene.addEventListener('click',()=>{if(!sceneLit)lightUpScene();else if(!washing&&!washCooldown)doWash();});
-  washScene.addEventListener('touchstart',(e)=>{e.preventDefault();if(!sceneLit)lightUpScene();else if(!washing&&!washCooldown)doWash();},{passive:false});
+function renderDirtyPile(){
+dirtyPileEl.innerHTML='';dirtyQueue.forEach((d,i)=>{const s=document.createElement('div');s.className='dirtySock'+(i===0?' target':'');dirtyPileEl.appendChild(s);});
+const need=washNeeded();washProgBar.style.width=dirtyQueue.length?(washProg/need)*100+'%':'0%';
+}
 
-  // ===== 核心 =====
-  function updateCalmUI(){calmCount.textContent=calmCharges;calmBtn.disabled=calmCharges<=0;calmBtn.classList.toggle('ready',calmCharges>0);}
-  calmBtn.addEventListener('click',()=>{
-    if(calmCharges<=0||!running)return;
-    calmCharges--;stats.calmUsed++;updateCalmUI();calmUntil=performance.now()+3000;
-    showBanner('风平息了片刻');beep(520,0.2,'sine');
-    wrap.classList.add('calming');setTimeout(()=>wrap.classList.remove('calming'),3000);
-    checkAchievements();
-  });
-  function updateXP(){const need=5;const pct=Math.min(100,(xpInLevel/need)*100);xpBar.style.width=pct+'%';xpLabel.textContent=xpInLevel+'/'+need;}
-  function checkLevelUp(){
-    const need=5;
-    if(xpInLevel>=need){xpInLevel-=need;level=Math.min(level+1,6);colorsUnlocked=Math.min(4+level-1,6);levelEl.textContent=level;updateWind();updateXP();showBanner('升级到 '+level+' 级！');beep(880,0.18,'sine');maybeUnlockLine2();}
-  }
-  let audioCtx=null;
-  function beep(f,d,t){if(!soundOn)return;try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.value=0.06;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.stop(audioCtx.currentTime+d);}catch(e){}}
-  soundBtn.addEventListener('click',()=>{soundOn=!soundOn;soundBtn.textContent=soundOn?'🔊':'🔇';});
-  function showBanner(t){banner.textContent=t;banner.classList.add('show');clearTimeout(showBanner._t);showBanner._t=setTimeout(()=>banner.classList.remove('show'),1400);}
-  function randColor(){if(Math.random()<0.08)return{n:'rainbow',h:RAINBOW,rainbow:true};return colors[Math.floor(Math.random()*colorsUnlocked)];}
-  function randSock(){const base=randColor();if(base.n!=='rainbow'){for(const[t,c]of Object.entries(SPEC_WEIGHTS)){if(Math.random()<c){base.special=t;break;}}}return base;}
-  function renderHearts(justLost){heartsEl.innerHTML='';for(let i=0;i<3;i++){const s=document.createElement('span');s.className='heart'+(i<lives?' on':'')+((justLost&&i===lives)?' lost':'');s.textContent='♥';heartsEl.appendChild(s);}}
-  function updateHeat(){const c=Math.min(combo,12);heatBar.style.width=(c/12*100)+'%';heatBar.className='heatBarInner heat'+(c<3?'1':c<6?'2':'3');heatText.textContent=c;}
-  function makeSockEl(s,extra){const sock=document.createElement('div');sock.className='sock'+(s.anim?' '+s.anim:'');sock.style.cssText='position:absolute;top:5px;left:50%;transform:translateX(-50%);background:'+s.h+';filter:drop-shadow(0 2px 2px rgba(0,0,0,0.12));'+(extra||'');if(s.special==='star'){const b=document.createElement('span');b.className='badgeStar';b.textContent='⭐';sock.appendChild(b);}else if(s.special==='bomb'){const b=document.createElement('span');b.className='badgeBomb';b.textContent='💣';sock.appendChild(b);}else if(s.special==='gold'){const b=document.createElement('span');b.className='badgeGold';b.textContent='🪙';sock.appendChild(b);sock.style.filter='drop-shadow(0 2px 4px rgba(212,160,23,0.4))';}return sock;}
-  function renderLine(li){const t=track[li];t.innerHTML='';lines[li].forEach((s,i)=>{const slot=document.createElement('div');slot.className='slot';slot.dataset.idx=i;slot.dataset.line=li;if(s){const clip=document.createElement('div');clip.className='clip';slot.appendChild(clip);if(s.rainbow){const ring=document.createElement('div');ring.className='rainbowRing';ring.style.cssText+='position:absolute;top:2px;left:50%;transform:translateX(-50%);width:26px;height:26px;';slot.appendChild(ring);}slot.appendChild(makeSockEl(s));}t.appendChild(slot);});}
-  function renderAllLines(){renderLine(0);if(line2Unlocked)renderLine(1);}
-  function renderTray(){tray.innerHTML='';queue.forEach((q,i)=>{const handle=document.createElement('div');handle.className='sockWrap';handle.dataset.qidx=i;const sock=document.createElement('div');sock.className='sock';sock.style.background=q.h;if(q.special==='star'){const b=document.createElement('span');b.className='badgeStar';b.textContent='⭐';sock.appendChild(b);}else if(q.special==='bomb'){const b=document.createElement('span');b.className='badgeBomb';b.textContent='💣';sock.appendChild(b);}else if(q.special==='gold'){const b=document.createElement('span');b.className='badgeGold';b.textContent='🪙';sock.appendChild(b);sock.style.filter='drop-shadow(0 2px 4px rgba(212,160,23,0.4))';}handle.appendChild(sock);handle.addEventListener('pointerdown',onDragStart);tray.appendChild(handle);});}
-  function updateWind(){windLabel.textContent='风力 '+level;}
-  function popScore(slotEl,amount,cls){const p=document.createElement('div');p.className='scorePop'+(cls?' '+cls:'');p.textContent='+'+amount;slotEl.appendChild(p);setTimeout(()=>p.remove(),720);}
-  function bumpCombo(){combo++;maxCombo=Math.max(maxCombo,combo);updateHeat();updateStats();if(combo>=2){comboLabel.textContent=combo+' 连击';comboLabel.classList.add('show');clearTimeout(comboTimer);comboTimer=setTimeout(()=>comboLabel.classList.remove('show'),1200);}checkAchievements();}
-  function resetCombo(){combo=0;updateHeat();comboLabel.classList.remove('show');}
-  function collectGold(li,idx,fromSlot){stats.goldCollected++;score+=50;scoreEl.textContent=score;xpInLevel++;checkLevelUp();updateXP();comboBank++;if(comboBank>=4){comboBank=0;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();}if(li===1)stats.line2Matches++;matches++;if(fromSlot)lines[li][idx]=null;addSoap(1);updateStats();showBanner('🪙 +50 金袜子！');beep(880,0.1,'sine');setTimeout(()=>beep(1100,0.1,'sine'),80);const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');if(slotEl)popScore(slotEl,50,'goldPop');renderLine(li);checkAchievements();}
-  function detonateBomb(li,idx){const arr=lines[li];const affected=[];for(let d=-1;d<=1;d++){const n=idx+d;if(n>=0&&n<SLOTS&&arr[n])affected.push(n);}affected.forEach(n=>{arr[n].anim='pop';});renderLine(li);beep(300,0.15,'square');setTimeout(()=>{let bonus=0;affected.forEach(n=>{if(arr[n]){if(arr[n].special==='star')stats.starMatched++;if(arr[n].rainbow)stats.rainbowMatched++;if(arr[n].special==='gold'){stats.goldCollected++;bonus+=50;}arr[n]=null;bonus+=10*level;}});stats.bombUsed++;score+=bonus;matches+=affected.length;comboBank+=affected.length;scoreEl.textContent=score;xpInLevel+=affected.length;checkLevelUp();updateXP();if(comboBank>=4){comboBank=0;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();}addSoap(affected.length);updateStats();renderLine(li);showBanner('💥 炸弹清除 '+affected.length+' 个！');const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');if(slotEl)popScore(slotEl,bonus,'bombPop');checkAchievements();},320);}
-  function checkMatch(li,idx){
-    const arr=lines[li];const s=arr[idx];if(!s)return;
-    if(s.special==='bomb'){detonateBomb(li,idx);return;}
-    if(s.special==='gold'){collectGold(li,idx,true);return;}
-    [idx-1,idx+1].forEach(n=>{
-      if(n>=0&&n<SLOTS&&arr[n]&&!arr[n].matched&&!s.matched&&(s.rainbow||arr[n].rainbow||arr[n].h===s.h)){
-        s.matched=true;arr[n].matched=true;s.anim='pop';arr[n].anim='pop';renderLine(li);beep(660,0.12,'triangle');
-        const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');bumpCombo();
-        const sb=s.special==='star'||arr[n].special==='star';const wb=(s.rainbow||arr[n].rainbow)?20:0;
-        const g=(10*level+Math.max(0,(combo-1)*5)+wb)*(sb?2:1);
-        if(slotEl)popScore(slotEl,g,sb?'starPop':'');
-        if(sb){stats.starMatched++;showBanner('⭐ 星袜双倍！');}
-        setTimeout(()=>{
-          arr[idx]=null;arr[n]=null;score+=g;matches++;comboBank++;scoreEl.textContent=score;xpInLevel++;
-          if(s.rainbow||arr[n].rainbow)stats.rainbowMatched++;
-          if(li===1)stats.line2Matches++;checkLevelUp();updateXP();
-          if(comboBank>=4){comboBank=0;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();}
-          addSoap(1);updateStats();renderLine(li);checkAchievements();
-          if(running&&queue.length===0&&!washing&&!washCooldown)cooldownNote.textContent='🧺 袜子晾完了，点小孩再洗吧';
-        },320);
-      }
-    });
-  }
-  function maybeUnlockLine2(){if(!line2Unlocked&&level>=LINE2_LEVEL){line2Unlocked=true;line1Lock.style.display='none';track[1].classList.add('unlocked');showBanner('第二根绳子解锁！');}}
-  function loseLife(){lives--;renderHearts(true);resetCombo();beep(180,0.25,'sawtooth');if(lives<=0)endGame();}
-  function endGame(){running=false;overEl.style.display='block';document.getElementById('finalScore').textContent='最终得分 '+score+' · 等级 '+level+' · 洗了 '+washCount+' 双';checkAchievements();const rank=submitScore(score,level);setTimeout(()=>{renderLB(rank);openModal(lbPanel);},800);}
+function spawnBubble(){const b=document.createElement('span');b.className='bubble';b.textContent='💧';b.style.left=(20+Math.random()*20)+'px';b.style.top='2px';washBtn.parentElement.appendChild(b);setTimeout(()=>b.remove(),550);}
 
-  let ghost=null,dragQidx=null,hoverSlotEl=null;
-  function onDragStart(e){if(!running)return;e.preventDefault();dragQidx=parseInt(e.currentTarget.dataset.qidx);ghost=document.createElement('div');ghost.className='sock';const q=queue[dragQidx];ghost.style.cssText='background:'+q.h+';position:absolute;pointer-events:none;z-index:20;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.2));width:26px;height:32px;';if(q.special==='star'){const b=document.createElement('span');b.className='badgeStar';b.textContent='⭐';b.style.cssText='font-size:13px!important;';ghost.appendChild(b);}else if(q.special==='bomb'){const b=document.createElement('span');b.className='badgeBomb';b.textContent='💣';b.style.cssText='font-size:13px!important;';ghost.appendChild(b);}else if(q.special==='gold'){const b=document.createElement('span');b.className='badgeGold';b.textContent='🪙';b.style.cssText='font-size:15px!important;';ghost.appendChild(b);ghost.style.filter='drop-shadow(0 2px 6px rgba(212,160,23,0.5))';}wrap.appendChild(ghost);moveGhost(e);window.addEventListener('pointermove',moveGhost);window.addEventListener('pointerup',onDragEnd);}
-  function clearHover(){if(hoverSlotEl){hoverSlotEl.classList.remove('hoverValid','hoverInvalid');hoverSlotEl=null;}}
-  function moveGhost(e){const rect=wrap.getBoundingClientRect();ghost.style.left=(e.clientX-rect.left-13)+'px';ghost.style.top=(e.clientY-rect.top-16)+'px';const el=document.elementFromPoint(e.clientX,e.clientY);const slotEl=el&&el.closest?el.closest('.slot'):null;if(slotEl!==hoverSlotEl){clearHover();if(slotEl){const li=parseInt(slotEl.dataset.line),idx=parseInt(slotEl.dataset.idx);const valid=(li===0||line2Unlocked)&&lines[li][idx]===null;slotEl.classList.add(valid?'hoverValid':'hoverInvalid');hoverSlotEl=slotEl;}}}
-  function onDragEnd(e){window.removeEventListener('pointermove',moveGhost);window.removeEventListener('pointerup',onDragEnd);if(ghost){ghost.remove();ghost=null;}clearHover();const el=document.elementFromPoint(e.clientX,e.clientY);const slotEl=el&&el.closest?el.closest('.slot'):null;const q=queue[dragQidx];let placed=false;if(slotEl){const li=parseInt(slotEl.dataset.line),idx=parseInt(slotEl.dataset.idx);if((li===0||line2Unlocked)&&lines[li][idx]===null){if(q.special==='gold'){stats.goldCollected++;score+=50;scoreEl.textContent=score;xpInLevel++;checkLevelUp();updateXP();comboBank++;if(comboBank>=4){comboBank=0;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();}if(li===1)stats.line2Matches++;matches++;queue.splice(dragQidx,1);renderTray();addSoap(1);updateStats();showBanner('🪙 +50 金袜子！');beep(880,0.1,'sine');setTimeout(()=>beep(1100,0.1,'sine'),80);popScore(slotEl,50,'goldPop');checkAchievements();placed=true;}else{lines[li][idx]={h:q.h,rainbow:!!q.rainbow,special:q.special};placed=true;queue.splice(dragQidx,1);renderLine(li);renderTray();checkMatch(li,idx);}}}if(!placed){queue.splice(dragQidx,1);renderTray();loseLife();wrap.classList.add('miss');setTimeout(()=>wrap.classList.remove('miss'),300);}dragQidx=null;if(running&&queue.length===0&&!washing&&!washCooldown)cooldownNote.textContent='🧺 洗完啦，点小孩继续洗';}
+function doWashClick(){
+if(!running)return;
+washBtn.classList.remove('bounce');void washBtn.offsetWidth;washBtn.classList.add('bounce');
+if(dirtyQueue.length===0){washCaption.textContent='没有脏袜子，等脏袜子堆出来～';return;}
+spawnBubble();beep(380+Math.random()*100,0.08,'sine');washProg++;
+const need=washNeeded();washProgBar.style.width=Math.min(100,(washProg/need)*100)+'%';
+if(washProg>=need){
+const clean=dirtyQueue.shift();washProg=0;renderDirtyPile();
+if(queue.length>=TRAYMAX){loseLife();showBanner('晾衣篮挤爆了一只！');}
+queue.push(clean);renderTray();washCount++;washCountEl.textContent=washCount;updateStats();
+addSoap(1);beep(700,0.16,'triangle');
+washCaption.textContent='洗好啦！拖去晾吧 ✨';
+updateSpawnCount();
+}else{washCaption.textContent='搓一搓… '+washProg+' / '+need;}
+}
+washBtn.addEventListener('click',doWashClick);
 
-  function spawnTick(){if(!running)return;if(queue.length>=TRAYMAX)return;queue.push(randSock());renderTray();}
-  function resetSpawn(){clearInterval(spawnTimer);spawnTimer=setInterval(spawnTick,25000);}
-  function loop(t){if(running){const calm=t<calmUntil;const amp=(10+level*7)*(calm?0.15:1);const freq=(0.0009+level*0.00035)*(calm?0.5:1);const s0=amp*Math.sin(t*freq);track[0].style.transform='translateX('+s0.toFixed(1)+'px)rotate('+(s0*0.018).toFixed(2)+'deg)';if(line2Unlocked){const s1=(amp*1.15)*Math.sin(t*freq*1.3+Math.PI/3);track[1].style.transform='translateX('+s1.toFixed(1)+'px)rotate('+(s1*0.018).toFixed(2)+'deg)';}}requestAnimationFrame(loop);}
+// ===== 核心逻辑 =====
+function updateCalmUI(){calmCount.textContent=calmCharges;calmBtn.disabled=calmCharges<=0;calmBtn.classList.toggle('ready',calmCharges>0);}
+calmBtn.addEventListener('click',()=>{if(calmCharges<=0||!running)return;calmCharges--;stats.calmUsed++;updateCalmUI();calmUntil=performance.now()+3000;showBanner('风平息了片刻');beep(520,0.2,'sine');wrap.classList.add('calming');setTimeout(()=>wrap.classList.remove('calming'),3000);checkAchievements();});
+function updateXP(){const need=5;const pct=Math.min(100,(xpInLevel/need)*100);xpBar.style.width=pct+'%';xpLabel.textContent=xpInLevel+'/'+need;}
+function checkLevelUp(){const need=5;if(xpInLevel>=need){xpInLevel-=need;level=Math.min(level+1,6);colorsUnlocked=Math.min(4+level-1,6);levelEl.textContent=level;updateWind();resetSpawn();updateXP();showBanner('升级到 '+level+' 级！');beep(880,0.18,'sine');maybeUnlockLine2();}}
+let audioCtx=null;
+function beep(f,d,t){if(!soundOn)return;try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.value=0.06;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.stop(audioCtx.currentTime+d);}catch(e){}}
+soundBtn.addEventListener('click',()=>{soundOn=!soundOn;soundBtn.textContent=soundOn?'🔊':'🔇';});
+function showBanner(t){banner.textContent=t;banner.classList.add('show');clearTimeout(showBanner._t);showBanner._t=setTimeout(()=>banner.classList.remove('show'),1400);}
+function renderHearts(justLost){heartsEl.innerHTML='';for(let i=0;i<3;i++){const s=document.createElement('span');s.className='heart'+(i<lives?' on':'')+((justLost&&i===lives)?' lost':'');s.textContent='♥';heartsEl.appendChild(s);}}
+function updateHeat(){const c=Math.min(combo,12);heatBar.style.width=(c/12*100)+'%';heatBar.className='heatBarInner heat'+(c<3?'1':c<6?'2':'3');heatText.textContent=c;}
 
-  function resetGame(){
-    lines=[new Array(SLOTS).fill(null),new Array(SLOTS).fill(null)];queue=[];score=0;level=1;lives=3;matches=0;colorsUnlocked=4;
-    xpInLevel=0;stats={bombUsed:0,starMatched:0,calmUsed:0,rainbowMatched:0,line2Matches:0,goldCollected:0};
-    maxCombo=0;washCount=0;soapProgress=0;newlyGot=[];washing=false;washCooldown=false;
-    running=true;line2Unlocked=false;calmCharges=0;calmUntil=0;comboBank=0;
-    resetCombo();updateCalmUI();line1Lock.style.display='flex';overEl.style.display='none';
-    closeModal(lbPanel);closeModal(achieveModal);closeModal(guideModal);
-    scoreEl.textContent='0';levelEl.textContent='1';washCountEl.textContent='0';
-    soapBar.style.width='0%';soapCount.textContent='0/'+SOAP_NEED;soapTip.textContent='🧼 洗袜子攒肥皂，满3个换🧊稳一稳';
-    updateStats();renderHearts();renderAllLines();renderTray();updateWind();updateXP();
-    sceneLit=false;washScene.classList.add('dark');washHint.textContent='';kidChar.classList.remove('waiting');
-    cooldownNote.textContent='点击小孩开始洗袜子 🧦';resetSpawn();
-    setTimeout(()=>lightUpScene(),600);
-  }
+function makeSockEl(s,extra){const sock=document.createElement('div');sock.className='sock'+(s.anim?' '+s.anim:'');sock.style.cssText='position:absolute;top:5px;left:50%;transform:translateX(-50%);background:'+s.h+';filter:drop-shadow(0 2px 2px rgba(0,0,0,0.12));'+(extra||'');if(s.special==='star'){const b=document.createElement('span');b.className='badgeStar';b.textContent='⭐';sock.appendChild(b);}else if(s.special==='bomb'){const b=document.createElement('span');b.className='badgeBomb';b.textContent='💣';sock.appendChild(b);}else if(s.special==='gold'){const b=document.createElement('span');b.className='badgeGold';b.textContent='🪙';sock.appendChild(b);sock.style.filter='drop-shadow(0 2px 4px rgba(212,160,23,0.4))';}return sock;}
+function renderLine(li){const t=track[li];t.innerHTML='';lines[li].forEach((s,i)=>{const slot=document.createElement('div');slot.className='slot';slot.dataset.idx=i;slot.dataset.line=li;if(s){const clip=document.createElement('div');clip.className='clip';slot.appendChild(clip);if(s.rainbow){const ring=document.createElement('div');ring.className='rainbowRing';ring.style.cssText+='position:absolute;top:2px;left:50%;transform:translateX(-50%);width:24px;height:24px;';slot.appendChild(ring);}slot.appendChild(makeSockEl(s));}t.appendChild(slot);});}
+function renderAllLines(){renderLine(0);if(line2Unlocked)renderLine(1);}
+function renderTray(){tray.innerHTML='';queue.forEach((q,i)=>{const handle=document.createElement('div');handle.className='sockWrap';handle.dataset.qidx=i;const sock=document.createElement('div');sock.className='sock';sock.style.background=q.h;if(q.special==='star'){const b=document.createElement('span');b.className='badgeStar';b.textContent='⭐';sock.appendChild(b);}else if(q.special==='bomb'){const b=document.createElement('span');b.className='badgeBomb';b.textContent='💣';sock.appendChild(b);}else if(q.special==='gold'){const b=document.createElement('span');b.className='badgeGold';b.textContent='🪙';sock.appendChild(b);sock.style.filter='drop-shadow(0 2px 4px rgba(212,160,23,0.4))';}handle.appendChild(sock);handle.addEventListener('pointerdown',onDragStart);tray.appendChild(handle);});}
+function updateWind(){windLabel.textContent='风力 '+level;}
+function popScore(slotEl,amount,cls){const p=document.createElement('div');p.className='scorePop'+(cls?' '+cls:'');p.textContent='+'+amount;slotEl.appendChild(p);setTimeout(()=>p.remove(),720);}
+function bumpCombo(){combo++;maxCombo=Math.max(maxCombo,combo);updateHeat();updateStats();if(combo>=2){comboLabel.textContent=combo+' 连击';comboLabel.classList.add('show');clearTimeout(comboTimer);comboTimer=setTimeout(()=>comboLabel.classList.remove('show'),1200);}checkAchievements();}
+function resetCombo(){combo=0;updateHeat();comboLabel.classList.remove('show');}
 
-  document.getElementById('restartBtn').addEventListener('click',resetGame);
-  loadPersistent();renderAchievements();updateCalmUI();updateXP();
-  renderHearts();renderAllLines();updateWind();renderTray();updateStats();
-  soapBar.style.width='0%';soapCount.textContent='0/'+SOAP_NEED;
-  setTimeout(()=>lightUpScene(),800);resetSpawn();requestAnimationFrame(loop);
+function collectGold(li,idx,fromSlot){stats.goldCollected++;score+=50;scoreEl.textContent=score;xpInLevel++;checkLevelUp();updateXP();comboBank++;if(comboBank>=4){comboBank=0;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();}if(li===1)stats.line2Matches++;matches++;if(fromSlot)lines[li][idx]=null;addSoap(1);updateStats();showBanner('🪙 +50 金袜子！');beep(880,0.1,'sine');setTimeout(()=>beep(1100,0.1,'sine'),80);const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');if(slotEl)popScore(slotEl,50,'goldPop');renderLine(li);checkAchievements();}
+function detonateBomb(li,idx){const arr=lines[li];const affected=[];for(let d=-1;d<=1;d++){const n=idx+d;if(n>=0&&n<SLOTS&&arr[n])affected.push(n);}affected.forEach(n=>{arr[n].anim='pop';});renderLine(li);beep(300,0.15,'square');setTimeout(()=>{let bonus=0;affected.forEach(n=>{if(arr[n]){if(arr[n].special==='star')stats.starMatched++;if(arr[n].rainbow)stats.rainbowMatched++;if(arr[n].special==='gold'){stats.goldCollected++;bonus+=50;}arr[n]=null;bonus+=10*level;}});stats.bombUsed++;score+=bonus;matches+=affected.length;comboBank+=affected.length;scoreEl.textContent=score;xpInLevel+=affected.length;checkLevelUp();updateXP();if(comboBank>=4){comboBank=0;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();}addSoap(affected.length);updateStats();renderLine(li);showBanner('💥 炸弹清除 '+affected.length+' 个！');const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');if(slotEl)popScore(slotEl,bonus,'bombPop');checkAchievements();},320);}
+function checkMatch(li,idx){const arr=lines[li];const s=arr[idx];if(!s)return;if(s.special==='bomb'){detonateBomb(li,idx);return;}if(s.special==='gold'){collectGold(li,idx,true);return;}[idx-1,idx+1].forEach(n=>{if(n>=0&&n<SLOTS&&arr[n]&&!arr[n].matched&&!s.matched&&(s.rainbow||arr[n].rainbow||arr[n].h===s.h)){s.matched=true;arr[n].matched=true;s.anim='pop';arr[n].anim='pop';renderLine(li);beep(660,0.12,'triangle');const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');bumpCombo();const sb=s.special==='star'||arr[n].special==='star';const wb=(s.rainbow||arr[n].rainbow)?20:0;const g=(10*level+Math.max(0,(combo-1)*5)+wb)*(sb?2:1);if(slotEl)popScore(slotEl,g,sb?'starPop':'');if(sb){stats.starMatched++;showBanner('⭐ 星袜双倍！');}setTimeout(()=>{arr[idx]=null;arr[n]=null;score+=g;matches++;comboBank++;scoreEl.textContent=score;xpInLevel++;if(s.rainbow||arr[n].rainbow)stats.rainbowMatched++;if(li===1)stats.line2Matches++;checkLevelUp();updateXP();if(comboBank>=4){comboBank=0;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();}addSoap(1);updateStats();renderLine(li);checkAchievements();},320);}});}
+
+function maybeUnlockLine2(){if(!line2Unlocked&&level>=LINE2_LEVEL){line2Unlocked=true;line1Lock.style.display='none';track[1].classList.add('unlocked');showBanner('第二根绳子解锁！');}}
+function loseLife(){lives--;renderHearts(true);resetCombo();beep(180,0.25,'sawtooth');if(lives<=0)endGame();}
+function endGame(){running=false;overEl.style.display='block';document.getElementById('finalScore').textContent='最终得分 '+score+' · 等级 '+level+' · 洗了 '+washCount+' 双';checkAchievements();const rank=submitScore(score,level);setTimeout(()=>{renderLB(rank);openModal(lbPanel);},800);}
+
+let ghost=null,dragQidx=null,hoverSlotEl=null;
+function onDragStart(e){if(!running)return;e.preventDefault();dragQidx=parseInt(e.currentTarget.dataset.qidx);ghost=document.createElement('div');ghost.className='sock';const q=queue[dragQidx];ghost.style.cssText='background:'+q.h+';position:absolute;pointer-events:none;z-index:20;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.2));width:24px;height:30px;';if(q.special==='star'){const b=document.createElement('span');b.className='badgeStar';b.textContent='⭐';b.style.cssText='font-size:12px!important;';ghost.appendChild(b);}else if(q.special==='bomb'){const b=document.createElement('span');b.className='badgeBomb';b.textContent='💣';b.style.cssText='font-size:12px!important;';ghost.appendChild(b);}else if(q.special==='gold'){const b=document.createElement('span');b.className='badgeGold';b.textContent='🪙';b.style.cssText='font-size:13px!important;';ghost.appendChild(b);ghost.style.filter='drop-shadow(0 2px 6px rgba(212,160,23,0.5))';}wrap.appendChild(ghost);moveGhost(e);window.addEventListener('pointermove',moveGhost);window.addEventListener('pointerup',onDragEnd);}
+function clearHover(){if(hoverSlotEl){hoverSlotEl.classList.remove('hoverValid','hoverInvalid');hoverSlotEl=null;}}
+function moveGhost(e){const rect=wrap.getBoundingClientRect();ghost.style.left=(e.clientX-rect.left-12)+'px';ghost.style.top=(e.clientY-rect.top-15)+'px';const el=document.elementFromPoint(e.clientX,e.clientY);const slotEl=el&&el.closest?el.closest('.slot'):null;if(slotEl!==hoverSlotEl){clearHover();if(slotEl){const li=parseInt(slotEl.dataset.line),idx=parseInt(slotEl.dataset.idx);const valid=(li===0||line2Unlocked)&&lines[li][idx]===null;slotEl.classList.add(valid?'hoverValid':'hoverInvalid');hoverSlotEl=slotEl;}}}
+function onDragEnd(e){window.removeEventListener('pointermove',moveGhost);window.removeEventListener('pointerup',onDragEnd);if(ghost){ghost.remove();ghost=null;}clearHover();const el=document.elementFromPoint(e.clientX,e.clientY);const slotEl=el&&el.closest?el.closest('.slot'):null;const q=queue[dragQidx];let placed=false;if(slotEl){const li=parseInt(slotEl.dataset.line),idx=parseInt(slotEl.dataset.idx);if((li===0||line2Unlocked)&&lines[li][idx]===null){if(q.special==='gold'){stats.goldCollected++;score+=50;scoreEl.textContent=score;xpInLevel++;checkLevelUp();updateXP();comboBank++;if(comboBank>=4){comboBank=0;calmCharges=Math.min(calmCharges+1,3);updateCalmUI();}if(li===1)stats.line2Matches++;matches++;queue.splice(dragQidx,1);renderTray();addSoap(1);updateStats();showBanner('🪙 +50 金袜子！');beep(880,0.1,'sine');setTimeout(()=>beep(1100,0.1,'sine'),80);popScore(slotEl,50,'goldPop');checkAchievements();placed=true;}else{lines[li][idx]={h:q.h,rainbow:!!q.rainbow,special:q.special};placed=true;queue.splice(dragQidx,1);renderLine(li);renderTray();checkMatch(li,idx);}}}if(!placed){queue.splice(dragQidx,1);renderTray();loseLife();wrap.classList.add('miss');setTimeout(()=>wrap.classList.remove('miss'),300);}dragQidx=null;}
+
+// 脏袜子生锈：自动往脏袜子堆里加
+function dirtyTick(){if(!running||dirtyQueue.length>=DIRTY_MAX)return;spawnDirty();}
+function resetSpawn(){clearInterval(spawnTimer);spawnTimer=setInterval(dirtyTick,spawnRate());}
+
+function loop(t){if(running){const calm=t<calmUntil;const amp=(10+level*7)*(calm?0.15:1);const freq=(0.0009+level*0.00035)*(calm?0.5:1);const s0=amp*Math.sin(t*freq);track[0].style.transform='translateX('+s0.toFixed(1)+'px)rotate('+(s0*0.018).toFixed(2)+'deg)';if(line2Unlocked){const s1=(amp*1.15)*Math.sin(t*freq*1.3+Math.PI/3);track[1].style.transform='translateX('+s1.toFixed(1)+'px)rotate('+(s1*0.018).toFixed(2)+'deg)';}}requestAnimationFrame(loop);}
+
+function resetGame(){
+lines=[new Array(SLOTS).fill(null),new Array(SLOTS).fill(null)];queue=[];score=0;level=1;lives=3;matches=0;colorsUnlocked=4;
+xpInLevel=0;stats={bombUsed:0,starMatched:0,calmUsed:0,rainbowMatched:0,line2Matches:0,goldCollected:0};
+maxCombo=0;washCount=0;soapProgress=0;dirtyQueue=[];washProg=0;newlyGot=[];
+running=true;line2Unlocked=false;calmCharges=0;calmUntil=0;comboBank=0;
+resetCombo();updateCalmUI();line1Lock.style.display='flex';overEl.style.display='none';
+closeModal(lbPanel);closeModal(achieveModal);closeModal(guideModal);
+scoreEl.textContent='0';levelEl.textContent='1';washCountEl.textContent='0';
+soapBar.style.width='0%';soapCount.textContent='0/'+SOAP_NEED;
+updateStats();renderHearts();renderAllLines();renderTray();updateWind();updateXP();
+renderDirtyPile();updateSpawnCount();washCaption.textContent='点击盆子洗脏袜子 🧒🪣';washProgBar.style.width='0%';
+resetSpawn();setTimeout(()=>{spawnDirty();setTimeout(()=>spawnDirty(),2000);setTimeout(()=>spawnDirty(),4500);},500);
+}
+
+document.getElementById('restartBtn').addEventListener('click',resetGame);
+loadPersistent();renderAchievements();updateCalmUI();updateXP();
+renderHearts();renderAllLines();updateWind();renderTray();updateStats();
+soapBar.style.width='0%';soapCount.textContent='0/'+SOAP_NEED;
+renderDirtyPile();updateSpawnCount();
+setTimeout(()=>{spawnDirty();setTimeout(()=>spawnDirty(),2000);setTimeout(()=>spawnDirty(),4500);},500);
+resetSpawn();requestAnimationFrame(loop);
 })();
 </script>
 </body>
