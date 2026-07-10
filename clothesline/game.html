@@ -142,6 +142,17 @@
   }
   .hintOverlay.show .hintBox{transform:scale(1);}
   .hintBox h3{margin:0 0 10px; font-size:15px; font-weight:700;}
+  /* 排行榜样式 */
+  .lbEntry{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;margin-bottom:2px;font-size:11px;}
+  .lbEntry:nth-child(1){background:#fff3cd;}.lbEntry:nth-child(2){background:#f0f0f0;}.lbEntry:nth-child(3){background:#fce4d6;}
+  .lbEntry .rank{width:22px;text-align:center;font-weight:700;color:var(--text-muted);font-size:11px;}
+  .lbEntry .rank.top{font-size:13px;}
+  .lbEntry .lbScore{font-weight:700;flex:1;text-align:right;}
+  .lbEntry .lbLevel{color:var(--text-secondary);font-size:10px;width:36px;text-align:right;}
+  .lbEntry .lbDate{color:var(--text-muted);font-size:9px;min-width:50px;text-align:right;}
+  .lbEntry.me{border:1.5px solid #378ADD;background:#e8f0fc!important;}
+  .lbEmpty{padding:15px 0;font-size:11px;color:var(--text-muted);}
+  .lbSummary{font-size:10px;color:var(--text-secondary);text-align:center;padding:4px 0 0;border-top:1px solid var(--border);margin-top:4px;}
   /* 游戏结束弹窗 */
   .overPanel{position:fixed;inset:0;background:rgba(30,26,20,0.5);z-index:70;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s ease;}
   .overPanel.show{opacity:1;pointer-events:auto;}
@@ -336,23 +347,33 @@
     lb.sort((a,b)=>b.score-a.score);
     if(lb.length>20)lb.length=20;
     saveLB(lb);
-    if(typeof tt!=='undefined'&&tt.postMessage) tt.postMessage({type:'score_update',score:sc,level:lv});
+    // 推送到抖音好友排行榜
+    if(typeof tt!=='undefined'&&tt.postMessage) tt.postMessage({type:'score_update',score:sc,level:lv,total:lb.length,rank:Math.min(lb.findIndex((e,i)=>e.score===sc&&e.level===lv&&i<20)+1,lb.length)});
     return lb.findIndex((e,i)=>e.score===sc&&e.level===lv&&i<20);
   }
 
   function renderLB(highlight){
     const lb=loadLB();
     if(!lb.length){lbList.innerHTML='<div class="lbEmpty">暂无记录，快去玩一局吧！</div>';return;}
-    lbList.innerHTML=lb.map((e,i)=>{
+    let html='';
+    lb.forEach((e,i)=>{
       const isMe=highlight!==void 0&&i===highlight;
       const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-      return '<div class="lbEntry'+(isMe?' me':'')+'">'
+      html+='<div class="lbEntry'+(isMe?' me':'')+'">'
         +'<span class="rank'+(i<3?' top':'')+'">'+medal+'</span>'
         +'<span class="lbScore">'+e.score+'</span>'
         +'<span class="lbLevel">Lv.'+e.level+'</span>'
         +'<span class="lbDate">'+e.date+'</span>'
         +'</div>';
-    }).join('');
+    });
+    // 好友排名摘要
+    if(highlight!==void 0&&highlight>0){
+      const pct=Math.round((1-(highlight/lb.length))*100);
+      html+='<div class="lbSummary">🎉 你超过了 '+pct+'% 的玩家！</div>';
+    }else if(highlight===0){
+      html+='<div class="lbSummary">👑 你是第一名！太厉害了！</div>';
+    }
+    lbList.innerHTML=html;
   }
 
   function showBanner(text){
