@@ -142,22 +142,6 @@
   }
   .hintOverlay.show .hintBox{transform:scale(1);}
   .hintBox h3{margin:0 0 10px; font-size:15px; font-weight:700;}
-  /* 排行榜 */
-  .lbPanel{position:fixed;inset:0;background:rgba(30,26,20,0.45);z-index:65;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .18s ease;}
-  .lbPanel.show{opacity:1;pointer-events:auto;}
-  .lbBox{background:#f6f4ee;border-radius:16px;padding:20px 20px 18px;max-width:360px;width:100%;max-height:76vh;overflow-y:auto;position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.3);transform:scale(0.94);transition:transform .18s ease;text-align:center;}
-  .lbPanel.show .lbBox{transform:scale(1);}
-  .lbBox h3{margin:0 0 2px;font-size:15px;font-weight:700;}
-  .lbBox .lbSub{font-size:11px;color:var(--text-secondary);margin:0 0 8px;}
-  .lbEntry{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;margin-bottom:3px;font-size:12px;}
-  .lbEntry:nth-child(1){background:#fff3cd;}.lbEntry:nth-child(2){background:#f0f0f0;}.lbEntry:nth-child(3){background:#fce4d6;}
-  .lbEntry .rank{font-weight:700;width:24px;text-align:center;color:var(--text-muted);}.lbEntry .rank.top{font-size:14px;}
-  .lbEntry .lbScore{font-weight:700;flex:1;text-align:right;}.lbEntry .lbLevel{color:var(--text-secondary);font-size:11px;}
-  .lbEntry .lbDate{color:var(--text-muted);font-size:10px;min-width:55px;text-align:right;}
-  .lbEntry.me{border:1.5px solid #378ADD;}
-  .lbEmpty{padding:20px 0;font-size:12px;color:var(--text-muted);}
-  #lbClose{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:8px;border:1px solid var(--border-strong);background:var(--card);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;}
-  #lbBtn{font-size:14px;padding:8px 10px;border-radius:10px;min-width:40px;min-height:40px;}
   /* 游戏结束弹窗 */
   .overPanel{position:fixed;inset:0;background:rgba(30,26,20,0.5);z-index:70;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s ease;}
   .overPanel.show{opacity:1;pointer-events:auto;}
@@ -190,7 +174,6 @@
       <button id="calmBtn" title="消耗一次能量，短暂止风">🧊 稳一稳 <span id="calmCount">0</span></button>
       <button id="soundBtn" title="开关音效">🔊</button>
       <button id="hintBtn" title="玩法说明">❓</button>
-      <button id="lbBtn" title="排行榜">🏆</button>
       <div id="hearts"></div>
     </div>
   </div>
@@ -239,15 +222,6 @@
       <p>绳子会持续随风摇摆，等级越高摆得越猛，瞄准时记得预判它的晃动。<br><br>脏袜子要先在下方盆里洗干净才会出现在队列里，洗一只需要点击好几下，等级越高需要的次数越多。<br><br>队列堆满、洗好的袜子挤爆、放错位置或脱靶都会扣一颗心，三颗心用完游戏结束。<br><br>出现<b>彩虹袜</b>时可以和任意颜色配对，还能拿额外加分；每配对 4 次攒 1 点"稳一稳"能量，可以短暂止风 3 秒。</p>
     </div>
   </div>
-  <!-- 排行榜弹窗 -->
-  <div class="lbPanel" id="lbPanel">
-    <div class="lbBox">
-      <button class="hintClose" id="lbClose" title="关闭">✕</button>
-      <h3>🏆 排行榜</h3>
-      <p class="lbSub">抖音好友排行（本地Top20）</p>
-      <div id="lbList"></div>
-    </div>
-  </div>
   <!-- 游戏结束弹窗（含排行榜） -->
   <div class="overPanel" id="overPanel">
     <div class="overBox" style="max-width:360px;">
@@ -255,7 +229,7 @@
       <p class="osub" id="finalScore" style="margin-bottom:8px;"></p>
       <div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px;">
         <p style="font-size:12px;font-weight:700;margin:0 0 6px;">🏆 排行榜（Top20）</p>
-        <div id="lbList" style="text-align:left;"></div>
+        <div id="lbListOver" style="text-align:left;"></div>
       </div>
       <button id="restartBtn" style="font-family:inherit;font-size:14px;font-weight:600;padding:9px 20px;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--text);cursor:pointer;">再来一局</button>
     </div>
@@ -351,10 +325,7 @@
 
   // ===== 排行榜 =====
   const LB_KEY='cl_lb';
-  const lbPanel=document.getElementById('lbPanel');
-  const lbBtn=document.getElementById('lbBtn');
-  const lbClose=document.getElementById('lbClose');
-  const lbList=document.getElementById('lbList');
+  const lbList=document.getElementById('lbListOver');
 
   function loadLB(){try{return JSON.parse(localStorage.getItem(LB_KEY))||[]}catch(e){return[]}}
   function saveLB(d){try{localStorage.setItem(LB_KEY,JSON.stringify(d))}catch(e){}}
@@ -383,10 +354,6 @@
         +'</div>';
     }).join('');
   }
-
-  lbBtn.addEventListener('click',()=>{renderLB();lbPanel.classList.add('show');});
-  lbClose.addEventListener('click',()=>lbPanel.classList.remove('show'));
-  lbPanel.addEventListener('click',(e)=>{if(e.target===lbPanel)lbPanel.classList.remove('show');});
 
   function showBanner(text){
     banner.textContent=text;
