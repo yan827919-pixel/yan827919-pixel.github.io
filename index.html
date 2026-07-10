@@ -248,11 +248,15 @@
       <div id="lbList"></div>
     </div>
   </div>
-  <!-- 游戏结束弹窗 -->
+  <!-- 游戏结束弹窗（含排行榜） -->
   <div class="overPanel" id="overPanel">
-    <div class="overBox">
+    <div class="overBox" style="max-width:360px;">
       <p class="otitle">游戏结束</p>
-      <p class="osub" id="finalScore"></p>
+      <p class="osub" id="finalScore" style="margin-bottom:8px;"></p>
+      <div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px;">
+        <p style="font-size:12px;font-weight:700;margin:0 0 6px;">🏆 排行榜（Top20）</p>
+        <div id="lbList" style="text-align:left;"></div>
+      </div>
       <button id="restartBtn" style="font-family:inherit;font-size:14px;font-weight:600;padding:9px 20px;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--text);cursor:pointer;">再来一局</button>
     </div>
   </div>
@@ -586,7 +590,7 @@
     document.getElementById('finalScore').textContent='最终得分 '+score+' · 到达等级 '+level;
     const rank=submitScore(score,level);
     document.getElementById('overPanel').classList.add('show');
-    setTimeout(()=>{renderLB(rank);lbPanel.classList.add('show');},600);
+    renderLB(rank);
   }
 
   let ghost=null, dragQidx=null, hoverSlotEl=null;
@@ -698,7 +702,6 @@
     updateCalmUI();
     line1Lock.style.display='flex';
     document.getElementById('overPanel').classList.remove('show');
-    lbPanel.classList.remove('show');
     scoreEl.textContent='0'; levelEl.textContent='1';
     washCaption.textContent='点击盆子，帮小孩把脏袜子洗干净';
     renderHearts(); renderAllLines(); renderTray(); renderDirtyPile(); updateWind();
