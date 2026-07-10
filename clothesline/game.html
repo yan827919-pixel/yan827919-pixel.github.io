@@ -158,6 +158,13 @@
   .lbEmpty{padding:20px 0;font-size:12px;color:var(--text-muted);}
   #lbClose{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:8px;border:1px solid var(--border-strong);background:var(--card);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;}
   #lbBtn{font-size:14px;padding:8px 10px;border-radius:10px;min-width:40px;min-height:40px;}
+  /* 游戏结束弹窗 */
+  .overPanel{position:fixed;inset:0;background:rgba(30,26,20,0.5);z-index:70;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .2s ease;}
+  .overPanel.show{opacity:1;pointer-events:auto;}
+  .overBox{background:#f6f4ee;border-radius:18px;padding:24px 20px 18px;max-width:320px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.3);transform:scale(0.92);transition:transform .2s ease;text-align:center;}
+  .overPanel.show .overBox{transform:scale(1);}
+  .overBox .otitle{font-size:18px;font-weight:700;margin:0 0 4px;}
+  .overBox .osub{font-size:13px;color:var(--text-secondary);margin:0 0 14px;}
   .hintBox p{text-align:left; font-size:12.5px; color:var(--text-secondary); line-height:1.7; margin:0;}
   .hintClose{
     position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:8px;
@@ -224,12 +231,7 @@
 
   <div class="trayLabel">洗好的袜子（拖到任意一根绳上，配对相邻同色即可消除）</div>
   <div id="tray"></div>
-
-  <div id="over">
-    <p class="title">游戏结束</p>
-    <p class="sub" id="finalScore"></p>
-    <button id="restartBtn">再来一局</button>
-  </div>
+  <!-- 游戏结束弹窗已移到下方 -->
   <div class="hintOverlay" id="hintPanel">
     <div class="hintBox">
       <button class="hintClose" id="hintClose" title="关闭">✕</button>
@@ -244,6 +246,14 @@
       <h3>🏆 排行榜</h3>
       <p class="lbSub">抖音好友排行（本地Top20）</p>
       <div id="lbList"></div>
+    </div>
+  </div>
+  <!-- 游戏结束弹窗 -->
+  <div class="overPanel" id="overPanel">
+    <div class="overBox">
+      <p class="otitle">游戏结束</p>
+      <p class="osub" id="finalScore"></p>
+      <button id="restartBtn" style="font-family:inherit;font-size:14px;font-weight:600;padding:9px 20px;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--text);cursor:pointer;">再来一局</button>
     </div>
   </div>
 </div>
@@ -573,9 +583,9 @@
   function endGame(){
     running=false;
     clearInterval(spawnTimer);
-    overEl.style.display='block';
     document.getElementById('finalScore').textContent='最终得分 '+score+' · 到达等级 '+level;
     const rank=submitScore(score,level);
+    document.getElementById('overPanel').classList.add('show');
     setTimeout(()=>{renderLB(rank);lbPanel.classList.add('show');},600);
   }
 
@@ -687,7 +697,8 @@
     resetCombo();
     updateCalmUI();
     line1Lock.style.display='flex';
-    overEl.style.display='none';
+    document.getElementById('overPanel').classList.remove('show');
+    lbPanel.classList.remove('show');
     scoreEl.textContent='0'; levelEl.textContent='1';
     washCaption.textContent='点击盆子，帮小孩把脏袜子洗干净';
     renderHearts(); renderAllLines(); renderTray(); renderDirtyPile(); updateWind();
