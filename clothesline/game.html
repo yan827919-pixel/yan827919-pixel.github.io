@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+<script>
+// 抖音小游戏 WebView 桥接
+(function(){
+  if(typeof tt === 'undefined') return; // 不在小游戏环境
+
+  // 接管 localStorage 使用小游戏缓存
+  const _origGet = localStorage.getItem;
+  const _origSet = localStorage.setItem;
+  const _origRemove = localStorage.removeItem;
+
+  localStorage.getItem = function(key){
+    try { return tt.getStorageSync(key); } catch(e){ return _origGet.call(localStorage, key); }
+  };
+  localStorage.setItem = function(key, val){
+    try { tt.setStorageSync(key, val); } catch(e){ _origSet.call(localStorage, key, val); }
+  };
+  localStorage.removeItem = function(key){
+    try { tt.removeStorageSync(key); } catch(e){ _origRemove.call(localStorage, key); }
+  };
+
+  // 通知小游戏框架 WebView 已就绪
+  if(tt.postMessage) tt.postMessage({type:'ready'});
+
+  console.log('🧦 抖音小游戏模式已激活');
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>晾衣绳配对 - 抖音休闲版</title>
+<style>
+  :root{
+    --sky-top:#bfe0f2; --sky-bottom:#eaf3e2; --ground:#c9dba0;
+    --card:#fffdf8; --border:#ddd9cd; --border-strong:#a89f8c;
+    --text:#2c2c2a; --text-secondary:#5f5e5a; --text-muted:#948d7c;
+    --danger:#c23b3b; --wood:#a9764f; --wood-dark:#8a5d3b;
+    --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+  body{
+    min-height:100dvh; padding:calc(12px + var(--safe-top)) 8px calc(30px + var(--safe-bottom));
+    background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-bottom) 65%,var(--ground) 100%);
+    color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    display:flex; justify-content:center; overflow-x:hidden;
+  }
+  #game{
+    width:100%; max-width:620px; background:var(--card); border:1px solid var(--border);
+    border-radius:20px; padding:16px 16px 22px; box-shadow:0 10px 30px rgba(60,50,30,0.08);
+    position:relative; overflow:hidden;
+  }
+  h1{font-size:18px; font-weight:700; margin:0 0 3px; text-align:center; letter-spacing:0.5px;}
+  .subtitle{text-align:center; font-size:11px; color:var(--text-muted); margin:0 0 12px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font-size:12px; flex-wrap:wrap; gap:4px;}
+  .topbar .stats{display:flex; gap:12px; align-items:center;}
+  .label{color:var(--text-secondary);}
+  .val{font-size:17px; font-weight:700; margin-left:3px; font-variant-numeric:tabular-nums;}
+  #hearts{display:flex; gap:3px; font-size:17px;}
+  .heart{color:var(--border-strong); transition:transform .2s;}
+  .heart.on{color:var(--danger);}
+  .heart.lost{animation:heartLost .4s ease;}
+  @keyframes heartLost{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+  .windrow{display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;}
+  .windrow .left{display:flex; align-items:center; gap:5px; color:var(--text-muted); font-size:11px;}
+  .combo{font-size:11px; font-weight:700; color:#c17a1f; opacity:0; transition:opacity .2s;}
+  .combo.show{opacity:1;}
+  .windIcon{display:inline-block; animation:blow 1.6s ease-in-out infinite;}
+  @keyframes blow{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+
+  .poleRow{display:flex; align-items:flex-start; justify-content:space-between; margin-top:6px;}
+  .pole{width:5px; height:12px; background:var(--wood); border-radius:2px 2px 0 0; flex-shrink:0; margin-top:-1px;}
+  .lineBox{flex:1; border-top:3px solid var(--wood-dark); padding-top:22px; padding-bottom:4px; margin:0 3px; position:relative;}
+  .track{display:flex; justify-content:space-between; position:relative;}
+  .slot{width:12.5%; height:64px; position:relative; flex-shrink:0; border-radius:6px; transition:background .1s, box-shadow .1s;}
+  .slot.hoverValid{background:rgba(29,158,117,0.14); box-shadow:inset 0 0 0 2px rgba(29,158,117,0.55);}
+  .slot.hoverInvalid{background:rgba(194,59,59,0.12); box-shadow:inset 0 0 0 2px rgba(194,59,59,0.5);}
+  .sep{border-top:1px dashed var(--border); margin:3px 0;}
+  .sepStrong{height:1px; background:var(--border); margin:8px 0 14px;}
+  .line1wrap{position:relative;}
+  #line1Lock{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:5px; background:rgba(255,253,248,0.92); border-radius:8px; backdrop-filter:blur(1px);
+  }
+  #line1Lock .lockIcon{width:18px; height:18px; border:2px solid var(--text-muted); border-radius:4px; position:relative;}
+  #line1Lock .lockIcon::before{content:"";position:absolute; top:-9px; left:2px; width:10px; height:9px; border:2px solid var(--text-muted); border-bottom:none; border-radius:6px 6px 0 0;}
+  #line1Lock span{font-size:11px; color:var(--text-muted);}
+
+  .trayLabel{font-size:11px; color:var(--text-secondary); margin-bottom:6px;}
+  #tray{display:flex; gap:10px; min-height:40px; flex-wrap:wrap;}
+
+  .sock{width:24px; height:32px; clip-path:polygon(22% 0%,78% 0%,78% 55%,100% 55%,100% 82%,55% 100%,0% 82%,0% 55%,22% 55%); position:relative; pointer-events:none; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15));}
+  .sock::after{content:"";position:absolute; top:4px; left:0; right:0; height:2px; background:rgba(255,255,255,0.35);}
+  .sockWrap{width:38px; height:44px; display:flex; align-items:center; justify-content:center; cursor:grab; touch-action:none; transition:transform .12s; border-radius:6px;}
+  .sockWrap:active{cursor:grabbing; transform:scale(1.1);}
+  .clip{position:absolute; top:0; left:50%; transform:translateX(-50%); width:8px; height:6px; background:var(--wood-dark); border-radius:2px; z-index:2;}
+
+  .scorePop{
+    position:absolute; left:50%; top:-4px; transform:translateX(-50%);
+    font-size:12px; font-weight:700; color:#c17a1f; pointer-events:none;
+    animation:scoreFloat .7s ease forwards;
+  }
+  @keyframes scoreFloat{0%{opacity:0; transform:translate(-50%,4px)}20%{opacity:1}100%{opacity:0; transform:translate(-50%,-18px)}}
+
+  @keyframes pop{0%{transform:scale(1) translateX(-50%);opacity:1}60%{transform:scale(1.3) translateX(-50%);opacity:1}100%{transform:scale(0.15) translateX(-50%);opacity:0}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(-3px)}to{opacity:1; transform:translateY(0)}}
+  .pop{animation:pop .35s ease forwards;}
+  .miss{animation:shake .3s ease;}
+  .unlocked{animation:fadeIn .5s ease;}
+
+  #banner{
+    position:absolute; top:8px; left:50%; transform:translateX(-50%) translateY(-140%);
+    background:#2c2c2a; color:#fffdf8; font-size:12px; font-weight:600;
+    padding:6px 14px; border-radius:20px; white-space:nowrap; transition:transform .35s ease; z-index:10;
+  }
+  #banner.show{transform:translateX(-50%) translateY(0);}
+
+  #over{display:none; text-align:center; padding:18px 0 2px;}
+  #over p.title{font-size:16px; font-weight:700; margin:0 0 3px;}
+  #over p.sub{font-size:12px; color:var(--text-secondary); margin:0 0 12px;}
+  button{
+    font-family:inherit; font-size:13px; font-weight:600; padding:8px 18px; border-radius:8px;
+    border:1px solid var(--border-strong); background:var(--card); color:var(--text); cursor:pointer;
+    transition:background .15s, transform .1s;
+  }
+  button:hover{background:#f2eee2;}
+  button:active{transform:scale(0.97);}
+  #restartBtn{display:block; margin:0 auto;}
+  #soundBtn{font-size:15px; padding:3px 8px; border-radius:6px;}
+  #calmBtn{font-size:11px; padding:3px 10px; display:flex; align-items:center; gap:4px;}
+  #calmBtn:disabled{opacity:0.4; cursor:not-allowed;}
+  #calmBtn.ready{box-shadow:0 0 0 2px rgba(55,138,221,0.4);}
+  .rainbowRing{position:absolute; inset:-3px; border-radius:8px; border:2px dashed #b8860b; animation:spin 3s linear infinite; pointer-events:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .calming{box-shadow:inset 0 0 0 3px rgba(55,138,221,0.35) !important;}
+  .rainbowSock{background:linear-gradient(135deg,#D85A30,#BA7517,#1D9E75,#378ADD,#7F77DD,#D4537E)!important; background-size:300% 300%; animation:rainbowShift 2.4s linear infinite, popIdle 1.6s ease-in-out infinite;}
+  @keyframes rainbowShift{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+  @keyframes popIdle{0%,100%{filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15)) drop-shadow(0 0 4px rgba(255,255,255,0.6))}50%{filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15)) drop-shadow(0 0 8px rgba(255,255,255,0.9))}}
+  .hint{text-align:center; font-size:10.5px; color:var(--text-muted); margin-top:14px; line-height:1.5;}
+
+  @media(max-width:380px){
+    #game{padding:12px 10px 16px;}
+    .slot{height:54px;}
+    .sock{width:20px; height:28px;}
+    .sockWrap{width:34px; height:38px;}
+    h1{font-size:16px;}
+    .topbar{font-size:11px;}
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="banner"></div>
+  <h1>晾衣绳配对</h1>
+  <p class="subtitle">拖动袜子，让相邻同色配对消除</p>
+
+  <div class="topbar">
+    <div class="stats">
+      <span><span class="label">得分</span><span class="val" id="score">0</span></span>
+      <span><span class="label">等级</span><span class="val" id="level">1</span></span>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <button id="calmBtn" title="消耗一次能量，短暂止风">🧊 稳一稳 <span id="calmCount">0</span></button>
+      <button id="soundBtn" title="开关音效">🔊</button>
+      <div id="hearts"></div>
+    </div>
+  </div>
+  <div class="windrow">
+    <span class="left"><span class="windIcon">🌬</span><span id="windLabel">风力 1</span></span>
+    <span class="combo" id="comboLabel"></span>
+  </div>
+
+  <div class="poleRow">
+    <div class="pole"></div>
+    <div class="lineBox">
+      <div class="track" id="line0Track"></div>
+    </div>
+    <div class="pole"></div>
+  </div>
+  <div class="sep"></div>
+  <div class="poleRow">
+    <div class="pole"></div>
+    <div class="lineBox line1wrap">
+      <div class="track" id="line1Track"></div>
+      <div id="line1Lock">
+        <div class="lockIcon"></div>
+        <span>等级 3 解锁第二根绳</span>
+      </div>
+    </div>
+    <div class="pole"></div>
+  </div>
+  <div class="sepStrong"></div>
+
+  <div class="trayLabel">下一批袜子（拖到任意一根绳上，配对相邻同色即可消除）</div>
+  <div id="tray"></div>
+
+  <div id="over">
+    <p class="title">游戏结束</p>
+    <p class="sub" id="finalScore"></p>
+    <button id="restartBtn">再来一局</button>
+  </div>
+  <div class="hint">绳子会持续随风摇摆，等级越高摆得越猛，瞄准时记得预判它的晃动。<br>队列堆满、放错位置或脱靶都会扣一颗心，三颗心用完游戏结束。<br>出现<b>彩虹袜</b>时可以和任意颜色配对，还能拿额外加分；每配对 4 次攒 1 点"稳一稳"能量，可以短暂止风 3 秒。</div>
+</div>
+
+<script>
+(function(){
+  const colors=[
+    {n:'coral',h:'#D85A30'},{n:'teal',h:'#1D9E75'},{n:'blue',h:'#378ADD'},
+    {n:'pink',h:'#D4537E'},{n:'purple',h:'#7F77DD'},{n:'amber',h:'#BA7517'}
+  ];
+  const SLOTS=7, TRAYMAX=4, LINE2_LEVEL=3;
+  let lines=[new Array(SLOTS).fill(null), new Array(SLOTS).fill(null)];
+  let queue=[]; let score=0, level=1, lives=3, matches=0, colorsUnlocked=4;
+  let combo=0, comboTimer=null;
+  let spawnTimer=null, running=true, line2Unlocked=false, soundOn=true;
+  let calmCharges=0, calmUntil=0, comboBank=0;
+  const RAINBOW='conic-gradient(#D85A30,#1D9E75,#378ADD,#D4537E,#7F77DD,#BA7517,#D85A30)';
+
+  const wrap=document.getElementById('game');
+  const track=[document.getElementById('line0Track'),document.getElementById('line1Track')];
+  const line1Lock=document.getElementById('line1Lock');
+  const tray=document.getElementById('tray');
+  const scoreEl=document.getElementById('score');
+  const levelEl=document.getElementById('level');
+  const heartsEl=document.getElementById('hearts');
+  const windLabel=document.getElementById('windLabel');
+  const comboLabel=document.getElementById('comboLabel');
+  const overEl=document.getElementById('over');
+  const banner=document.getElementById('banner');
+  const soundBtn=document.getElementById('soundBtn');
+  const calmBtn=document.getElementById('calmBtn');
+  const calmCount=document.getElementById('calmCount');
+
+  function updateCalmUI(){
+    calmCount.textContent=calmCharges;
+    calmBtn.disabled=calmCharges<=0;
+    calmBtn.classList.toggle('ready',calmCharges>0);
+  }
+  calmBtn.addEventListener('click',()=>{
+    if(calmCharges<=0 || !running) return;
+    calmCharges--;
+    updateCalmUI();
+    calmUntil=performance.now()+3000;
+    showBanner('风平息了片刻');
+    beep(520,0.2,'sine');
+    wrap.classList.add('calming');
+    setTimeout(()=>wrap.classList.remove('calming'),3000);
+  });
+
+  let audioCtx=null;
+  function beep(freq,dur,type){
+    if(!soundOn) return;
+    try{
+      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.type=type||'sine'; o.frequency.value=freq;
+      g.gain.value=0.06;
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+      o.stop(audioCtx.currentTime+dur);
+    }catch(e){}
+  }
+  soundBtn.addEventListener('click',()=>{
+    soundOn=!soundOn;
+    soundBtn.textContent=soundOn?'🔊':'🔇';
+  });
+
+  function showBanner(text){
+    banner.textContent=text;
+    banner.classList.add('show');
+    clearTimeout(showBanner._t);
+    showBanner._t=setTimeout(()=>banner.classList.remove('show'),1400);
+  }
+
+  function randColor(){
+    if(Math.random()<0.1) return {n:'rainbow',h:RAINBOW,rainbow:true};
+    return colors[Math.floor(Math.random()*colorsUnlocked)];
+  }
+
+  function renderHearts(justLost){
+    heartsEl.innerHTML='';
+    for(let i=0;i<3;i++){
+      const s=document.createElement('span');
+      s.className='heart'+(i<lives?' on':'')+((justLost && i===lives)?' lost':'');
+      s.textContent='♥';
+      heartsEl.appendChild(s);
+    }
+  }
+
+  function renderLine(li){
+    const t=track[li];
+    t.innerHTML='';
+    lines[li].forEach((s,i)=>{
+      const slot=document.createElement('div');
+      slot.className='slot'; slot.dataset.idx=i; slot.dataset.line=li;
+      if(s){
+        const clip=document.createElement('div');
+        clip.className='clip';
+        slot.appendChild(clip);
+        const sock=document.createElement('div');
+        sock.className='sock'+(s.anim?(' '+s.anim):'');
+        sock.style.cssText='position:absolute;top:6px;left:50%;transform:translateX(-50%);background:'+s.h+';filter:drop-shadow(0 2px 2px rgba(0,0,0,0.12));';
+        if(s.rainbow){
+          const ring=document.createElement('div');
+          ring.className='rainbowRing';
+          ring.style.cssText+='position:absolute;top:2px;left:50%;transform:translateX(-50%);width:28px;height:28px;';
+          slot.appendChild(ring);
+        }
+        slot.appendChild(sock);
+      }
+      t.appendChild(slot);
+    });
+  }
+  function renderAllLines(){ renderLine(0); if(line2Unlocked) renderLine(1); }
+
+  function renderTray(){
+    tray.innerHTML='';
+    queue.forEach((q,i)=>{
+      const handle=document.createElement('div');
+      handle.className='sockWrap';
+      handle.dataset.qidx=i;
+      const sock=document.createElement('div');
+      sock.className='sock';
+      sock.style.background=q.h;
+      handle.appendChild(sock);
+      handle.addEventListener('pointerdown',onDragStart);
+      tray.appendChild(handle);
+    });
+  }
+
+  function updateWind(){ windLabel.textContent='风力 '+level; }
+
+  function popScore(slotEl,amount){
+    const p=document.createElement('div');
+    p.className='scorePop';
+    p.textContent='+'+amount;
+    slotEl.appendChild(p);
+    setTimeout(()=>p.remove(),720);
+  }
+
+  function bumpCombo(){
+    combo++;
+    if(combo>=2){
+      comboLabel.textContent=combo+' 连击';
+      comboLabel.classList.add('show');
+      clearTimeout(comboTimer);
+      comboTimer=setTimeout(()=>comboLabel.classList.remove('show'),1200);
+    }
+  }
+  function resetCombo(){
+    combo=0;
+    comboLabel.classList.remove('show');
+  }
+
+  function checkMatch(li,idx){
+    const arr=lines[li];
+    const s=arr[idx];
+    if(!s) return;
+    [idx-1,idx+1].forEach(n=>{
+      if(n>=0 && n<SLOTS && arr[n] && !arr[n].matched && !s.matched && (s.rainbow || arr[n].rainbow || arr[n].h===s.h)){
+        s.matched=true; arr[n].matched=true;
+        s.anim='pop'; arr[n].anim='pop';
+        renderLine(li);
+        beep(660,0.12,'triangle');
+        const slotEl=track[li].querySelector('[data-idx="'+idx+'"]');
+        bumpCombo();
+        const wildcardBonus=(s.rainbow||arr[n].rainbow)?20:0;
+        const gained=10*level+Math.max(0,(combo-1)*5)+wildcardBonus;
+        if(slotEl) popScore(slotEl,gained);
+        setTimeout(()=>{
+          arr[idx]=null; arr[n]=null;
+          score+=gained; matches++;
+          scoreEl.textContent=score;
+          comboBank++;
+          if(comboBank>=4){
+            comboBank=0;
+            calmCharges=Math.min(calmCharges+1,3);
+            updateCalmUI();
+          }
+          if(matches%5===0){
+            level=Math.min(level+1,6);
+            colorsUnlocked=Math.min(4+level-1,6);
+            levelEl.textContent=level;
+            updateWind();
+            resetSpawn();
+            showBanner('升级到 '+level+' 级！');
+            beep(880,0.18,'sine');
+            maybeUnlockLine2();
+          }
+          renderLine(li);
+        },320);
+      }
+    });
+  }
+
+  function maybeUnlockLine2(){
+    if(!line2Unlocked && level>=LINE2_LEVEL){
+      line2Unlocked=true;
+      line1Lock.style.display='none';
+      track[1].classList.add('unlocked');
+      showBanner('第二根绳子解锁！');
+    }
+  }
+
+  function loseLife(){
+    lives--; renderHearts(true);
+    resetCombo();
+    beep(180,0.25,'sawtooth');
+    if(lives<=0){ endGame(); }
+  }
+
+  function endGame(){
+    running=false;
+    clearInterval(spawnTimer);
+    overEl.style.display='block';
+    document.getElementById('finalScore').textContent='最终得分 '+score+' · 到达等级 '+level;
+  }
+
+  let ghost=null, dragQidx=null, hoverSlotEl=null;
+  function onDragStart(e){
+    if(!running) return;
+    e.preventDefault();
+    dragQidx=parseInt(e.currentTarget.dataset.qidx);
+    ghost=document.createElement('div');
+    ghost.className='sock';
+    ghost.style.cssText='background:'+queue[dragQidx].h+';position:absolute;pointer-events:none;z-index:20;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.2));';
+    wrap.appendChild(ghost);
+    moveGhost(e);
+    window.addEventListener('pointermove',moveGhost);
+    window.addEventListener('pointerup',onDragEnd);
+  }
+  function clearHover(){
+    if(hoverSlotEl){
+      hoverSlotEl.classList.remove('hoverValid','hoverInvalid');
+      hoverSlotEl=null;
+    }
+  }
+  function moveGhost(e){
+    const rect=wrap.getBoundingClientRect();
+    ghost.style.left=(e.clientX-rect.left-12)+'px';
+    ghost.style.top=(e.clientY-rect.top-15)+'px';
+
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    const slotEl=el && el.closest ? el.closest('.slot') : null;
+    if(slotEl!==hoverSlotEl){
+      clearHover();
+      if(slotEl){
+        const li=parseInt(slotEl.dataset.line);
+        const idx=parseInt(slotEl.dataset.idx);
+        const valid=(li===0 || line2Unlocked) && lines[li][idx]===null;
+        slotEl.classList.add(valid?'hoverValid':'hoverInvalid');
+        hoverSlotEl=slotEl;
+      }
+    }
+  }
+  function onDragEnd(e){
+    window.removeEventListener('pointermove',moveGhost);
+    window.removeEventListener('pointerup',onDragEnd);
+    if(ghost){ ghost.remove(); ghost=null; }
+    clearHover();
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    const slotEl=el && el.closest ? el.closest('.slot') : null;
+    const q=queue[dragQidx];
+    let placed=false;
+    if(slotEl){
+      const li=parseInt(slotEl.dataset.line);
+      const idx=parseInt(slotEl.dataset.idx);
+      if((li===0 || line2Unlocked) && lines[li][idx]===null){
+        lines[li][idx]={h:q.h, rainbow:!!q.rainbow};
+        placed=true;
+        queue.splice(dragQidx,1);
+        renderLine(li); renderTray();
+        checkMatch(li,idx);
+      }
+    }
+    if(!placed){
+      queue.splice(dragQidx,1);
+      renderTray();
+      loseLife();
+      wrap.classList.add('miss');
+      setTimeout(()=>wrap.classList.remove('miss'),300);
+    }
+    dragQidx=null;
+  }
+
+  function spawnTick(){
+    if(!running) return;
+    if(queue.length>=TRAYMAX){
+      queue.shift();
+      loseLife();
+    }
+    queue.push(randColor());
+    renderTray();
+  }
+  function resetSpawn(){
+    clearInterval(spawnTimer);
+    const interval=Math.max(600,2400-level*300);
+    spawnTimer=setInterval(spawnTick,interval);
+  }
+
+  function loop(t){
+    if(running){
+      const calm=t<calmUntil;
+      const amp=(10+level*7)*(calm?0.15:1);
+      const freq=(0.0009+level*0.00035)*(calm?0.5:1);
+      const sway0=amp*Math.sin(t*freq);
+      track[0].style.transform='translateX('+sway0.toFixed(1)+'px) rotate('+(sway0*0.018).toFixed(2)+'deg)';
+      if(line2Unlocked){
+        const sway1=(amp*1.15)*Math.sin(t*freq*1.3+Math.PI/3);
+        track[1].style.transform='translateX('+sway1.toFixed(1)+'px) rotate('+(sway1*0.018).toFixed(2)+'deg)';
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+
+  document.getElementById('restartBtn').addEventListener('click',()=>{
+    lines=[new Array(SLOTS).fill(null), new Array(SLOTS).fill(null)];
+    queue=[]; score=0; level=1; lives=3; matches=0; colorsUnlocked=4;
+    running=true; line2Unlocked=false;
+    calmCharges=0; calmUntil=0; comboBank=0;
+    resetCombo();
+    updateCalmUI();
+    line1Lock.style.display='flex';
+    overEl.style.display='none';
+    scoreEl.textContent='0'; levelEl.textContent='1';
+    renderHearts(); renderAllLines(); renderTray(); updateWind();
+    for(let i=0;i<3;i++) spawnTick();
+    resetSpawn();
+  });
+
+  updateCalmUI();
+  renderHearts(); renderAllLines(); updateWind();
+  for(let i=0;i<3;i++) spawnTick();
+  resetSpawn();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
