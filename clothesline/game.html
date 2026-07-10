@@ -150,7 +150,7 @@
 
   /* ===== 洗衣场景 ===== */
   .washSection{border-top:1px dashed var(--border);padding-top:6px;flex:1;display:flex;flex-direction:column;min-height:80px;}
-  .washScene{position:relative;width:100%;flex:1;border-radius:10px;overflow:hidden;cursor:pointer;background:url('images/背景.png') center/cover no-repeat;min-height:60px;}
+  .washScene{position:relative;width:100%;flex:1;border-radius:10px;overflow:hidden;cursor:pointer;background:url('images/wash_bg.png') center/cover no-repeat;min-height:60px;}
   .washScene.dark{filter:brightness(0.3)contrast(0.7);}
   .washScene.washing{animation:washFlash .6s ease;}
   @keyframes washFlash{0%,100%{filter:brightness(1)}30%{filter:brightness(1.2)}}
@@ -255,7 +255,7 @@
   <!-- 洗衣场景 -->
   <div class="washSection">
     <div class="washScene dark" id="washScene">
-      <img src="images/人物.png" class="kidPixel" id="kidChar" alt="洗袜子的小孩">
+      <img src="images/wash_kid.png" class="kidPixel" id="kidChar" alt="洗袜子的小孩">
       <div class="washHint" id="washHint"></div>
     </div>
     <div class="washStatus">
