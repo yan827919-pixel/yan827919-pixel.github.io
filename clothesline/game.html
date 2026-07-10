@@ -150,39 +150,15 @@
 
   /* ===== 洗衣场景 ===== */
   .washSection{border-top:1px dashed var(--border);padding-top:6px;flex:1;display:flex;flex-direction:column;min-height:80px;}
-  .washScene{position:relative;width:100%;flex:1;border-radius:10px;overflow:hidden;cursor:pointer;background:linear-gradient(180deg,#d4e8f0 0%,#c9dba0 60%,#b8c890 100%);transition:filter .8s ease,opacity .8s ease;min-height:60px;}
-  .washScene.dark{filter:brightness(0.4)contrast(0.8);}
+  .washScene{position:relative;width:100%;flex:1;border-radius:10px;overflow:hidden;cursor:pointer;background:url('images/背景.png') center/cover no-repeat;min-height:60px;}
+  .washScene.dark{filter:brightness(0.3)contrast(0.7);}
   .washScene.washing{animation:washFlash .6s ease;}
-  @keyframes washFlash{0%,100%{filter:brightness(1)}30%{filter:brightness(1.15)}}
-  .washSun{position:absolute;top:8px;right:12px;font-size:18px;animation:sunGlow 3s ease-in-out infinite;}
-  @keyframes sunGlow{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.85;transform:scale(1.05)}}
-  .washCloud{position:absolute;top:6px;left:10px;font-size:14px;opacity:0.7;animation:cloudDrift 6s ease-in-out infinite;}
-  @keyframes cloudDrift{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
-  .washGround{position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(0deg,#b8c890,transparent);}
-  .kidChar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:50px;height:72px;cursor:pointer;transition:transform .1s;}
-  .kidChar:active{transform:translateX(-50%)scale(0.95);}
-  .kidChar.waiting{animation:kidBounce 1.2s ease-in-out infinite;}
-  @keyframes kidBounce{0%,100%{transform:translateX(-50%)translateY(0)}50%{transform:translateX(-50%)translateY(-3px)}}
-  .kidHead{width:24px;height:24px;background:#f5d6c6;border-radius:50%;position:absolute;top:0;left:13px;z-index:3;box-shadow:inset -3px -2px 0 rgba(0,0,0,0.06);}
-  .kidHair{position:absolute;top:-2px;left:10px;width:30px;height:10px;background:#6b4226;border-radius:6px 6px 0 0;z-index:4;}
-  .kidEyeL{width:3px;height:3px;background:#3a2a1a;border-radius:50%;position:absolute;top:10px;left:6px;}
-  .kidEyeR{width:3px;height:3px;background:#3a2a1a;border-radius:50%;position:absolute;top:10px;left:15px;}
-  .kidMouth{width:6px;height:3px;border-bottom:2px solid #c9957a;border-radius:0 0 3px 3px;position:absolute;top:16px;left:9px;}
-  .kidBody{width:30px;height:28px;background:#7ec8e3;border-radius:5px;position:absolute;top:22px;left:10px;z-index:2;}
-  .kidBody::after{content:"";position:absolute;bottom:2px;left:4px;right:4px;height:6px;background:#5a9bb8;border-radius:2px;}
-  .kidArmL,.kidArmR{width:6px;height:22px;background:#f5d6c6;border-radius:3px;position:absolute;top:22px;z-index:1;transform-origin:top center;}
-  .kidArmL{left:4px;}.kidArmR{right:4px;}
-  .washAnim .kidArmL{animation:armWashL .4s ease;}
-  .washAnim .kidArmR{animation:armWashR .4s ease;}
-  @keyframes armWashL{0%,100%{transform:rotate(10deg)}50%{transform:rotate(-20deg)}}
-  @keyframes armWashR{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(20deg)}}
-  .kidLegL,.kidLegR{width:8px;height:12px;background:#7ec8e3;border-radius:0 0 3px 3px;position:absolute;top:48px;z-index:1;}
-  .kidLegL{left:12px;}.kidLegR{left:30px;}
-  .washBasin{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:30px;z-index:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));}
-  .bubble{position:absolute;bottom:44px;font-size:10px;opacity:0;pointer-events:none;z-index:5;animation:bubbleFloat 2s ease-out forwards;}
-  @keyframes bubbleFloat{0%{opacity:0;transform:translateY(0)scale(0.5)}20%{opacity:0.8}100%{opacity:0;transform:translateY(-55px)scale(1.2)}}
-  .washAnim .bubble{animation:bubbleFloat 1.6s ease-out forwards;}
-  .washHint{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(44,44,42,0.5);white-space:nowrap;background:rgba(255,255,255,0.6);padding:1px 8px;border-radius:8px;}
+  @keyframes washFlash{0%,100%{filter:brightness(1)}30%{filter:brightness(1.2)}}
+  .kidPixel{position:absolute;bottom:10%;left:50%;transform:translateX(-50%);height:70%;max-height:85%;width:auto;cursor:pointer;transition:transform .15s;image-rendering:pixelated;z-index:2;}
+  .kidPixel:active{transform:translateX(-50%)scale(0.95);}
+  .kidPixel.waiting{animation:kidBounce 1.2s ease-in-out infinite;}
+  @keyframes kidBounce{0%,100%{transform:translateX(-50%)translateY(0)}50%{transform:translateX(-50%)translateY(-4px)}}
+  .washHint{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(44,44,42,0.6);white-space:nowrap;background:rgba(255,255,255,0.7);padding:1px 10px;border-radius:8px;z-index:5;}
   .washStatus{display:flex;align-items:center;justify-content:space-between;padding:3px 0;font-size:10px;color:var(--text-secondary);}
   .washStatus .wCount{font-weight:700;color:var(--text);}
   .cooldownNote{font-size:8px;color:var(--text-muted);text-align:center;min-height:14px;}
@@ -217,7 +193,7 @@
     #game{padding:8px;}.slot{height:44px;}
     .sock{width:17px;height:22px;}.sockWrap{width:34px;height:34px;}
     h1{font-size:13px;margin-bottom:1px;}.topbar{margin-bottom:3px;}.subtitle{display:none;}
-    .washScene{min-height:50px;}.kidChar{transform:translateX(-50%)scale(0.75);}
+    .washScene{min-height:50px;}.kidPixel{height:65%;}
   }
 </style>
 </head>
@@ -279,15 +255,7 @@
   <!-- 洗衣场景 -->
   <div class="washSection">
     <div class="washScene dark" id="washScene">
-      <span class="washSun">☀️</span><span class="washCloud">☁️</span>
-      <div class="washGround"></div>
-      <div class="kidChar waiting" id="kidChar">
-        <div class="kidHair"></div>
-        <div class="kidHead"><div class="kidEyeL"></div><div class="kidEyeR"></div><div class="kidMouth"></div></div>
-        <div class="kidArmL" id="armL"></div><div class="kidArmR" id="armR"></div>
-        <div class="kidBody"></div><div class="kidLegL"></div><div class="kidLegR"></div>
-      </div>
-      <div class="washBasin">🪣</div>
+      <img src="images/人物.png" class="kidPixel" id="kidChar" alt="洗袜子的小孩">
       <div class="washHint" id="washHint"></div>
     </div>
     <div class="washStatus">
@@ -384,7 +352,7 @@
   const xpBar=document.getElementById('xpBar');const xpLabel=document.getElementById('xpLabel');
   const heatBar=document.getElementById('heatBar');const heatText=document.getElementById('heatText');
   const washScene=document.getElementById('washScene');const kidChar=document.getElementById('kidChar');
-  const armL=document.getElementById('armL');const armR=document.getElementById('armR');
+  const armL=null;const armR=null;
   const washHint=document.getElementById('washHint');const washCountEl=document.getElementById('washCount');
   const cooldownNote=document.getElementById('cooldownNote');
   const soapBar=document.getElementById('soapBar');const soapCount=document.getElementById('soapCount');
@@ -489,8 +457,7 @@
     if(queue.length>=TRAYMAX){cooldownNote.textContent='⚠️ 晾衣篮满了，先晾袜子！';return;}
     washing=true;washCooldown=true;cooldownNote.textContent='🧼 正在洗袜子...';
     washScene.classList.add('washing');kidChar.classList.remove('waiting');
-    armL.style.animation='none';armR.style.animation='none';void armL.offsetWidth;void armR.offsetWidth;
-    armL.style.animation='armWashL .4s ease 2';armR.style.animation='armWashR .4s ease 2';
+    // 泡泡效果
     ['○','○','○','○'].forEach((b,i)=>{
       const el=document.createElement('span');el.className='bubble';el.textContent=b;
       el.style.left=(20+Math.random()*60)+'%';el.style.animationDelay=(i*0.25)+'s';
