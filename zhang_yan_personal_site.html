@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>张岩 · Unity 虚拟仿真开发者</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    background:#080c18;color:#dce1ed;line-height:1.6;overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:rgba(56,189,248,.25);color:#fff}
+
+  :root{
+    --bg:#080c18;--srf:#0f1628;--crd:#141c30;
+    --bdr:rgba(56,189,248,.1);--bdr-h:rgba(56,189,248完全的);--sky:#38bdf8;--teal:#2dd4bf;
+    --txt:#dce1ed;--txt2:rgba(220,225,237,.45);
+    --font-ui:'Space Grotesk',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  }
+
+  /* ── Ambient blobs ── */
+  .ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .ambient-blob{
+    position:absolute;border-radius:50%;filter:blur(120px);
+    opacity:.025;animation:blob 50s ease-in-out infinite
+  }
+  .ambient-blob:nth-child(1){width:700px;height:700px;top:-15%;left:-10%;background:var(--sky)}
+  .ambient-blob:nth-child(2){width:500px;height:500px;bottom:-12%;right:-8%;background:var(--teal);animation-delay:-25s}
+  .ambient-blob:nth-child(3){width:350px;height:350px;top:45%;left:55%;background:#818cf8;opacity:.015;animation-delay:-12s}
+  @keyframes blob{0%,100%{transform:translate(0,0)scale(1)}25%{transform:translate(50px,-40px)scale(1.08)}50%{transform:translate(-30px,50px)scale(.92)}75%{transform:translate(40px,30px)scale(1.04)}}
+
+  /* ── Nav ── */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    padding:.65rem 2rem;display:flex;justify-content:space-between;align-items:center;
+    backdrop-filter:blur(24px);background:rgba(8,12,24,.75);
+    border-bottom:1px solid var(--bdr);transition:transform .35s,background .35s;
+  }
+  nav.hidden{transform:translateY(-100%)}
+  nav.scrolled{background:rgba(8,12,24,.92)}
+  nav .logo{font-weight:600;font-size:1rem;letter-spacing:-.01em;display:flex;align-items:center;gap:.5rem}
+  nav .logo em{font-style:normal;color:var(--sky)}
+  nav .logo .dot{
+    display:inline-block;width:5px;height:5px;border-radius:50%;
+    background:var(--teal);animation:pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 var(--teal);opacity:1}50%{box-shadow:0 0 10px 4px var(--teal);opacity:.4}}
+  nav .links{display:flex;gap:1.75rem}
+  nav .links a{
+    color:var(--txt2);text-decoration:none;
+    font-size:.78rem;font-weight:450;transition:color .3s;position:relative;font-family:var(--font-mono);
+  }
+  nav .links a::after{
+    content:'';position:absolute;bottom:-4px;left:0;width:0;height:1.5px;
+    background:var(--sky);transition:width .35s
+  }
+  nav .links a:hover{color:var(--txt)}
+  nav .links a:hover::after{width:100%}
+  nav .links a.active{color:var(--sky)}
+  nav .links a.active::after{width:100%}
+
+  /* ── Scroll bar ── */
+  .sbar{
+    position:fixed;top:0;left:0;height:2px;z-index:101;pointer-events:none;
+    background:linear-gradient(90deg,var(--sky),var(--teal),#818cf8);
+    width:0;transition:width .08s linear;
+  }
+
+  /* ── Hero ── */
+  .hero{
+    position:relative;z-index:1;
+    min-height:100vh;display:flex;align-items:center;
+    padding:7rem 2rem 4rem;max-width:760px;margin:0 auto;
+  }
+  .hero-content{width:100%}
+  .hero-badge{
+    display:inline-flex;align-items:center;gap:.5rem;
+    font-family:var(--font-mono);font-size:.6rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--sky);margin-bottom:1.5rem;
+    opacity:0;animation:fadeUp .7s .05s both;
+    border:1px solid var(--bdr);border-radius:4px;padding:4px 10px;
+  }
+  .hero-badge .dot-badge{
+    width:5px;height:5px;border-radius:50%;background:var(--teal);
+    animation:pulse-dot 2s infinite;
+  }
+  .hero h1{
+    font-size:clamp(2.5rem,7vw,4.2rem);
+    font-weight:700;letter-spacing:-.03em;line-height:1.05;
+    margin-bottom:.5rem;
+    opacity:0;animation:fadeUp .7s .15s both;
+  }
+  .hero h1 .hl{background:linear-gradient(135deg,var(--sky),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hero-title{
+    font-family:var(--font-mono);font-size:.72rem;color:var(--txt2);
+    letter-spacing:.06em;margin-bottom:1.5rem;
+    opacity:0;animation:fadeUp .7s .2s both;
+  }
+  .hero p{
+    font-size:.92rem;color:var(--txt2);max-width:540px;
+    line-height:1.8;margin-bottom:2rem;
+    opacity:0;animation:fadeUp .7s .25s both;
+  }
+  .hero-actions{
+    display:flex;flex-wrap:wrap;gap:.65rem;
+    opacity:0;animation:fadeUp .7s .3s both;
+  }
+  .contact-pill{
+    display:inline-flex;align-items:center;gap:.5rem;
+    font-family:var(--font-mono);font-size:.68rem;color:var(--txt2);
+    background:var(--crd);border:1px solid var(--bdr);
+    border-radius:6px;padding:.5rem .9rem;text-decoration:none;
+    transition:all .25s;
+  }
+  .contact-pill:hover{border-color:var(--sky);color:var(--sky);transform:translateY(-1px)}
+  .contact-pill i{font-size:.85rem}
+  .salary-tag{
+    font-family:var(--font-mono);font-size:.65rem;
+    background:rgba(56,189,248,.06);border:1px solid var(--bdr);
+    color:var(--sky);border-radius:6px;padding:.5rem .9rem;
+  }
+
+  /* Scroll indicator */
+  .scroll-indicator{
+    margin-top:3.5rem;
+    opacity:0;animation:fadeUp .7s .4s both;
+  }
+  .scroll-indicator div{
+    display:flex;flex-direction:column;align-items:center;gap:.3rem;
+    color:var(--txt2);font-family:var(--font-mono);font-size:.55rem;letter-spacing:.12em;
+  }
+  .scroll-indicator .line{
+    width:1px;height:40px;
+    background:linear-gradient(var(--txt2),transparent);
+    animation:scroll-pulse 2s infinite;
+  }
+  @keyframes scroll-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+  .rv{opacity:0;transform:translateY(24px)}
+  .rv.in{animation:fadeUp .6s cubic-bezier(.16,1,.3,1) both}
+
+  /* ── Section ── */
+  section{position:relative;z-index:1;padding:5rem 2rem}
+  .inner{max-width:760px;margin:0 auto}
+  .sec-label{
+    font-family:var(--font-mono);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--sky);margin-bottom:.75rem;display:flex;align-items:center;gap:.6rem;
+  }
+  .sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--bdr),transparent)}
+  h2{
+    font-size:clamp(1.3rem,3vw,1.8rem);
+    font-weight:600;letter-spacing:-.02em;margin-bottom:.75rem;
+  }
+  .sec-desc{color:var(--txt2);font-size:.85rem;margin-bottom:2rem;max-width:500px;line-height:1.7}
+  .sec-divider{
+    position:relative;z-index:1;height:1px;
+    background:linear-gradient(90deg,transparent,var(--bdr),transparent);
+    margin:0 2rem;
+  }
+
+  /* ── Skills ── */
+  .skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.6rem}
+  .skill-item{
+    background:var(--crd);border:1px solid var(--bdr);border-radius:8px;
+    padding:.85rem;transition:all .3s;
+  }
+  .skill-item:hover{border-color:var(--bdr-h);transform:translateY(-1px)}
+  .skill-name{font-size:.72rem;font-weight:500;margin-bottom:.4rem;color:rgba(220,225,237,.7)}
+  .skill-pct{font-family:var(--font-mono);font-size:.55rem;color:var(--txt2);text-align:right;margin-bottom:.15rem}
+  .skill-bar{height:3px;background:rgba(56,189,248,.08);border-radius:2px;overflow:hidden}
+  .skill-fill{
+    height:100%;border-radius:2px;
+    background:linear-gradient(90deg,var(--sky),var(--teal));
+    width:0;transition:width 1s cubic-bezier(.16,1,.3,1);
+  }
+  .skill-item.animated .skill-fill{width:var(--pct) !important}
+
+  /* ── Experience ── */
+  .exp-list{display:flex;flex-direction:column}
+  .exp-item{
+    padding:1.25rem 0;
+    border-bottom:1px solid var(--bdr);
+  }
+  .exp-item:last-child{border-bottom:none}
+  .exp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap}
+  .exp-company{font-size:.9rem;font-weight:550}
+  .exp-role{
+    font-family:var(--font-mono);font-size:.65rem;color:var(--sky);
+    letter-spacing:.04em;margin:.15rem 0 .5rem;
+  }
+  .exp-desc{font-size:.75rem;color:var(--txt2);line-height:1.7}
+  .exp-period{
+    font-family:var(--font-mono);font-size:.6rem;color:var(--txt2);
+    white-space:nowrap;padding-top:.1rem;
+  }
+
+  /* ── Projects ── */
+  .proj-grid{display:grid;gap:.75rem}
+  .proj-card{
+    background:var(--crd);border:1px solid var(--bdr);border-radius:10px;
+    padding:1.25rem 1.4rem;transition:all .35s;
+    position:relative;overflow:hidden;cursor:default;
+  }
+  .proj-card::before{
+    content:'';position:absolute;left:0;top:0;bottom:0;
+    width:3px;border-radius:2px 0 0 2px;
+  }
+  .proj-card.c1::before{background:linear-gradient(var(--sky),#06b6d4)}
+  .proj-card.c2::before{background:linear-gradient(var(--teal),#34d399)}
+  .proj-card.c3::before{background:linear-gradient(#818cf8,#a78bfa)}
+  .proj-card:hover{
+    border-color:var(--bdr-h);transform:translateY(-3px);
+    box-shadow:0 12px 40px rgba(0,0,0,.3);
+  }
+  .proj-title{font-size:.82rem;font-weight:550;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem}
+  .proj-title i{font-size:.8rem;opacity:.6}
+  .proj-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.55rem}
+  .tag{
+    font-family:var(--font-mono);font-size:.55rem;letter-spacing:.04em;
+    padding:.15rem .45rem;border-radius:3px;
+    border:1px solid var(--bdr);color:var(--txt2);transition:all .2s;
+  }
+  .tag:hover{border-color:var(--sky);color:var(--sky);background:rgba(56,189,248,.04)}
+  .proj-desc{font-size:.72rem;color:var(--txt2);line-height:1.7}
+
+  /* ── Contact ── */
+  .contact-section{
+    position:relative;z-index:1;
+    border-top:1px solid var(--bdr);
+    padding:4rem 2rem 3rem;text-align:center;
+  }
+  .contact-section h2{font-size:clamp(1.1rem,2.5vw,1.5rem);font-weight:600;margin-bottom:.5rem}
+  .contact-section p{color:var(--txt2);font-size:.8rem;margin-bottom:1.5rem}
+  .contact-links{display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap}
+
+  /* ── Footer ── */
+  footer{
+    position:relative;z-index:1;text-align:center;padding:1.5rem;
+    color:var(--txt2);font-family:var(--font-mono);font-size:.6rem;
+    border-top:1px solid var(--bdr);opacity:.5;
+  }
+
+  /* ── Back to top ── */
+  .btt{
+    position:fixed;bottom:1.5rem;right:1.5rem;z-index:50;
+    width:36px;height:36px;border-radius:50%;
+    background:var(--crd);border:1px solid var(--bdr);
+    color:var(--txt2);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;opacity:0;pointer-events:none;
+    transition:all .35s;backdrop-filter:blur(8px);
+    text-decoration:none;
+  }
+  .btt.show{opacity:1;pointer-events:auto}
+  .btt:hover{border-color:var(--sky);color:var(--sky);transform:translateY(-3px)}
+  .btt i{font-size:1rem}
+
+  /* ── Responsive ── */
+  @media(max-width:768px){
+    .skills-grid{grid-template-columns:repeat(2,1fr)}
+    nav .links{gap:1rem}
+    nav .links a{font-size:.65rem}
+    section{padding:3.5rem 1.25rem}
+    .hero{padding:5rem 1.25rem 3rem}
+    .proj-card{padding:1rem 1.1rem}
+    .exp-top{flex-direction:column}
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+    .rv{opacity:1;transform:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient">
+  <div class="ambient-blob"></div>
+  <div class="ambient-blob"></div>
+  <div class="ambient-blob"></div>
+</div>
+
+<div class="sbar" id="sbar"></div>
+
+<nav id="nav">
+  <div class="logo"><em>张</em>岩<span class="dot"></span></div>
+  <div class="links">
+    <a href="#skills">技能</a>
+    <a href="#experience">经历</a>
+    <a href="#projects">项目</a>
+    <a href="#contact">联系</a>
+  </div>
+</nav>
+
+<a class="btt" id="btt" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false"><i class="ti ti-arrow-up"></i></a>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot-badge"></span> AVAILABLE &middot; UNITY DEVELOPER</div>
+    <h1>张<span class="hl">岩</span></h1>
+    <div class="hero-title">// Unity Engineer &middot; VR/AR &middot; Simulation Systems</div>
+    <p>
+      能独立从0搭建 Unity 仿真系统，深耕工业与教育场景。熟悉 VR/AR 开发、无人机仿真、AI 视觉集成与数字孪生。对新技术敏感，具备完整的从需求到交付的项目把控能力。
+    </p>
+    <div class="hero-actions">
+      <a href="mailto:1684633428@qq.com" class="contact-pill"><i class="ti ti-mail"></i>1684633428@qq.com</a>
+      <a href="tel:17741551251" class="contact-pill"><i class="ti ti-phone"></i>17741551251</a>
+      <span class="salary-tag">期望薪资 面议</span>
+    </div>
+    <div class="scroll-indicator">
+      <div>
+        <span>SCROLL</span>
+        <div class="line"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Skills ── -->
+<section id="skills">
+  <div class="inner">
+    <div class="sec-label rv">技术栈</div>
+    <h2 class="rv">技能与工具</h2>
+    <p class="sec-desc rv">从引擎到工具链，覆盖 VR/AR 仿真开发全流程。</p>
+    <div class="skills-grid">
+      <div class="skill-item rv"><div class="skill-name">Unity 开发</div><div class="skill-pct">95%</div><div class="skill-bar"><div class="skill-fill" style="--pct:95%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">C# 编程</div><div class="skill-pct">85%</div><div class="skill-bar"><div class="skill-fill" style="--pct:85%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">VR/AR 开发</div><div class="skill-pct">80%</div><div class="skill-bar"><div class="skill-fill" style="--pct:80%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">Photoshop</div><div class="skill-pct">80%</div><div class="skill-bar"><div class="skill-fill" style="--pct:80%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">Substance Painter</div><div class="skill-pct">75%</div><div class="skill-bar"><div class="skill-fill" style="--pct:75%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">Maya</div><div class="skill-pct">60%</div><div class="skill-bar"><div class="skill-fill" style="--pct:60%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">Blender</div><div class="skill-pct">50%</div><div class="skill-bar"><div class="skill-fill" style="--pct:50%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">3ds Max</div><div class="skill-pct">60%</div><div class="skill-bar"><div class="skill-fill" style="--pct:60%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">博图 PLC</div><div class="skill-pct">55%</div><div class="skill-bar"><div class="skill-fill" style="--pct:55%"></div></div></div>
+      <div class="skill-item rv"><div class="skill-name">越疆机器人</div><div class="skill-pct">55%</div><div class="skill-bar"><div class="skill-fill" style="--pct:55%"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ── Experience ── -->
+<section id="experience">
+  <div class="inner">
+    <div class="sec-label rv">经历</div>
+    <h2 class="rv">从业履历</h2>
+    <p class="sec-desc rv">从 Unity 新人到仿真系统架构，持续深耕教育仿真领域。</p>
+    <div class="exp-list">
+      <div class="exp-item rv">
+        <div class="exp-top">
+          <div>
+            <div class="exp-company">沈阳慧阳科技有限公司</div>
+            <div class="exp-role">Unity 开发 · 建模 · 技术培训</div>
+          </div>
+          <div class="exp-period">2024.08 &mdash; 至今</div>
+        </div>
+        <div class="exp-desc">主导各类仿真系统完整开发流程，涵盖金工热处理/冲压/铣工教学仿真、VR/AR 机器人拆装、AI 视觉训练验证、无人机仿真应用开发。承担院校和合作单位的 Unity 开发培训，参与金砖大赛"一带一路"技术支持。</div>
+      </div>
+      <div class="exp-item rv">
+        <div class="exp-top">
+          <div>
+            <div class="exp-company">沈阳金冉科技</div>
+            <div class="exp-role">Unity VR 开发</div>
+          </div>
+          <div class="exp-period">2023.07 &mdash; 09</div>
+        </div>
+        <div class="exp-desc">基于 Pico 设备制作 VR 漫游项目，完成 VR 交互逻辑与场景搭建。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ── Projects ── -->
+<section id="projects">
+  <div class="inner">
+    <div class="sec-label rv">项目</div>
+    <h2 class="rv">代表项目</h2>
+    <p class="sec-desc rv">基于 Unity 引擎开发的虚拟仿真实训系统，覆盖多个教学领域。</p>
+    <div class="proj-grid">
+      <div class="proj-card c1 rv">
+        <div class="proj-title"><i class="ti ti-drone"></i>无人机仿真系统</div>
+        <div class="proj-tags">
+          <span class="tag">多模式飞行</span><span class="tag">航线规划</span>
+          <span class="tag">AI识别验证</span><span class="tag">任务流程</span>
+        </div>
+        <div class="proj-desc">独立完成结构学习、农业喷洒、测绘航拍、飞行训练等全模块开发。实现手动/AB点/航线规划多模式飞行、环境干扰与避障逻辑、喷洒覆盖率计算，覆盖多类型无人机物理调校。</div>
+      </div>
+      <div class="proj-card c2 rv">
+        <div class="proj-title"><i class="ti ti-tools"></i>金工仿真系列</div>
+        <div class="proj-tags">
+          <span class="tag">热处理</span><span class="tag">冲压</span>
+          <span class="tag">铣工</span><span class="tag">教学可视化</span>
+        </div>
+        <div class="proj-desc">参与并独立完成多类金工仿真项目，负责三维场景搭建、工艺流程还原与交互逻辑优化，将实际工艺转化为可操作的仿真内容，已在多所学校和培训机构落地使用。</div>
+      </div>
+      <div class="proj-card c3 rv">
+        <div class="proj-title"><i class="ti ti-device-vision-pro"></i>VR 工业机器人拆装</div>
+        <div class="proj-tags">
+          <span class="tag">六练习区</span><span class="tag">物理交互</span>
+          <span class="tag">考核系统</span><span class="tag">手柄操作</span>
+        </div>
+        <div class="proj-desc">开发虚拟拆装训练系统，支持六个练习区，涵盖安装/拆卸/零件物理交互。实现螺丝装配流程、整体考核、倒计时与成绩上传分析，提供沉浸式手柄物理反馈训练体验。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sec-divider"></div>
+
+<!-- ── Contact ── -->
+<section id="contact" class="contact-section rv">
+  <h2>联系我</h2>
+  <p>对虚拟仿真实训系统感兴趣，或有项目合作意向？欢迎联系。</p>
+  <div class="contact-links">
+    <a href="mailto:1684633428@qq.com" class="contact-pill"><i class="ti ti-mail"></i>1684633428@qq.com</a>
+    <a href="tel:17741551251" class="contact-pill"><i class="ti ti-phone"></i>17741551251</a>
+    <span class="contact-pill" style="cursor:default"><i class="ti ti-brand-wechat"></i>葳世(岩)</span>
+  </div>
+</section>
+
+<footer>&copy; 2026 张岩 &middot; Unity 虚拟仿真开发者 &middot; 沈阳</footer>
+
+<script>
+// ── Grid particle canvas ──
+(function(){
+  const c = document.createElement('canvas'), ctx = c.getContext('2d');
+  const container = document.querySelector('.hero');
+  c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.08';
+  container.insertBefore(c, container.firstChild);
+
+  let W, H, dots = [];
+  function resize(){
+    W = container.offsetWidth; H = container.offsetHeight;
+    c.width = W; c.height = H;
+    const step = 36;
+    dots = [];
+    for(let x=0; x<W; x+=step) for(let y=0; y<H; y+=step)
+      if(Math.random()>0.7) dots.push({x,y,ox:x,oy:y,phase:Math.random()*Math.PI*2,speed:.3+Math.random()*.5});
+  }
+  resize();
+
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = .4;
+    for(let x=0; x<=W; x+=36){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for(let y=0; y<=H; y+=36){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    dots.forEach(d => {
+      const dx = Math.sin(t*.001*d.speed+d.phase)*6;
+      const dy = Math.cos(t*.001*d.speed*.7+d.phase)*6;
+      d.x = d.ox+dx; d.y = d.oy+dy;
+      ctx.beginPath(); ctx.arc(d.x,d.y,1.8,0,Math.PI*2);
+      ctx.fillStyle = '#38bdf8'; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+  window.addEventListener('resize', resize);
+})();
+
+// ── Scroll reveal ──
+const rvObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.classList.add('in');
+      // Animate skill bars in this entry
+      if(e.target.classList.contains('skill-item')){
+        setTimeout(() => e.target.classList.add('animated'), 100);
+      }
+      rvObs.unobserve(e.target);
+    }
+  });
+}, { threshold:.08, rootMargin:'0px 0px -30px 0px' });
+document.querySelectorAll('.rv').forEach(el => rvObs.observe(el));
+
+// ── Progress bar ──
+const sbar = document.getElementById('sbar');
+window.addEventListener('scroll', () => {
+  const p = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+  sbar.style.width = (p*100)+'%';
+}, { passive:true });
+
+// ── Nav ──
+let ly = 0;
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  nav.classList.toggle('hidden', y>ly && y>80);
+  nav.classList.toggle('scrolled', y>50);
+  ly = y;
+  document.getElementById('btt').classList.toggle('show', y>400);
+}, { passive:true });
+
+// ── Active nav link ──
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav .links a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if(s.getBoundingClientRect().top<200) current = s.id; });
+  navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href')==='#'+current));
+}, { passive:true });
+
+// ── 3D tilt on project cards ──
+if(window.matchMedia('(pointer:fine)').matches){
+  document.querySelectorAll('.proj-card').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left)/r.width - .5;
+      const y = (e.clientY - r.top)/r.height - .5;
+      el.style.transform = `perspective(600px) rotateY(${x*3}deg) rotateX(${-y*3}deg) translateY(-4px)`;
+    });
+    el.addEventListener('mouseleave', () => { el.style.transform = ''; });
+  });
+}
+
+// ── Ripple on contact pills ──
+document.querySelectorAll('.contact-pill').forEach(btn => {
+  btn.addEventListener('click', function(e){
+    if(this.style.cursor === 'default') return;
+    const r = this.getBoundingClientRect();
+    const span = document.createElement('span');
+    span.style.cssText = 'position:absolute;border-radius:50%;background:rgba(255,255,255,.1);width:80px;height:80px;left:'+(e.clientX-r.left-40)+'px;top:'+(e.clientY-r.top-40)+'px;transform:scale(0);animation:ripple-anim .5s ease-out;pointer-events:none';
+    span.onanimationend = () => span.remove();
+    this.style.position = 'relative'; this.style.overflow = 'hidden';
+    this.appendChild(span);
+  });
+});
+const style = document.createElement('style');
+style.textContent = '@keyframes ripple-anim{to{transform:scale(3);opacity:0}}';
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>
